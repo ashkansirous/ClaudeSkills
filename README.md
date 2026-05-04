@@ -22,28 +22,38 @@ ClaudeSkills/
 
 Clone the repo once, then symlink each skill folder into `~/.claude/skills/`. `git pull` keeps the live skills current.
 
+The install snippets below loop over every subdirectory containing a `SKILL.md` and link it into `~/.claude/skills/`. They are idempotent — re-run after `git pull` to pick up any new skills added to the repo without editing the snippet.
+
 ### PowerShell (Windows)
 
 ```powershell
 git clone https://github.com/ashkansirous/ClaudeSkills.git "$env:USERPROFILE\.claude\skills-repo"
-New-Item -ItemType SymbolicLink `
-  -Path   "$env:USERPROFILE\.claude\skills\grill-me" `
-  -Target "$env:USERPROFILE\.claude\skills-repo\grill-me"
+$skillsDir = "$env:USERPROFILE\.claude\skills"
+if (-not (Test-Path $skillsDir)) { New-Item -ItemType Directory -Path $skillsDir -Force | Out-Null }
+Get-ChildItem "$env:USERPROFILE\.claude\skills-repo" -Directory |
+  Where-Object { Test-Path (Join-Path $_.FullName "SKILL.md") } |
+  ForEach-Object {
+    $target = Join-Path $skillsDir $_.Name
+    if (Test-Path $target) { return }
+    try   { New-Item -ItemType SymbolicLink -Path $target -Target $_.FullName -ErrorAction Stop | Out-Null }
+    catch { New-Item -ItemType Junction     -Path $target -Target $_.FullName | Out-Null }
+  }
 ```
 
-Symbolic links on Windows require either **Developer Mode** enabled (Settings → Privacy & security → For developers) or an **elevated** PowerShell. If neither is available, copy instead and re-copy after each `git pull`:
-
-```powershell
-Copy-Item -Recurse `
-  "$env:USERPROFILE\.claude\skills-repo\grill-me" `
-  "$env:USERPROFILE\.claude\skills\grill-me"
-```
+`SymbolicLink` requires **Developer Mode** (Settings → Privacy & security → For developers) or an **elevated** PowerShell; without either, the script transparently falls back to `Junction`, which works without elevation and behaves identically for the skill loader.
 
 ### Bash (macOS / Linux / WSL / Git Bash)
 
 ```bash
 git clone https://github.com/ashkansirous/ClaudeSkills.git ~/.claude/skills-repo
-ln -s ~/.claude/skills-repo/grill-me ~/.claude/skills/grill-me
+mkdir -p ~/.claude/skills
+for dir in ~/.claude/skills-repo/*/; do
+  [ -f "$dir/SKILL.md" ] || continue
+  name=$(basename "$dir")
+  target=~/.claude/skills/"$name"
+  [ -e "$target" ] && continue
+  ln -s "${dir%/}" "$target"
+done
 ```
 
 Restart Claude Code after installing so the skill loader picks up the new entries.
@@ -63,4 +73,4 @@ Restart Claude Code after installing so the skill loader picks up the new entrie
    ```
 
 3. Commit and push.
-4. On each machine where the repo is installed: `git pull` in `~/.claude/skills-repo`, then symlink (or copy) the new folder into `~/.claude/skills/` and restart Claude Code.
+4. On each machine where the repo is installed: `git pull` in `~/.claude/skills-repo`, re-run the install snippet above (it skips existing skills and links any new ones), then restart Claude Code.
