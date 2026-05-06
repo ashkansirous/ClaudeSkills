@@ -21,6 +21,8 @@ ClaudeSkills/
 ## Skills
 
 - [`grill-me`](skills/grill-me/SKILL.md) — interview me about a plan/design until we reach shared understanding.
+- [`quick-grill`](skills/quick-grill/SKILL.md) — fast variant of grill-me: at most 4 questions, then recommendations for the rest.
+- [`to-scope`](skills/to-scope/SKILL.md) — synthesize current context into a lightweight `scope.md` at the repo root; precursor to the full `plan.md` workflow.
 
 ## Install
 
