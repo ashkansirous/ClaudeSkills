@@ -15,6 +15,20 @@ When the user explicitly kicks off planning with one of the phrases `let's plan 
 
 Confirm with the user before pushing or opening the PR.
 
+## Task breakdown: vertical slices over horizontal layers
+
+When breaking work into chunks — whether writing `plan.md`, writing `scope.md`, or creating tasks — default to **vertical slices** over **horizontal layers**.
+
+A vertical slice is the smallest end-to-end change that produces user-visible value. For a full-stack feature, that means: migration + entity + repository + service + API endpoint + UI for **one** thing, all the way through, before starting the next slice. A horizontal slice would be: ten migrations, then ten repositories, then ten services. Vertical is preferred — each slice is independently shippable and exercises the whole stack, surfacing integration problems early.
+
+Apply this:
+
+- In `plan.md` — order chunks by slice, not by layer. The first chunk should be the smallest end-to-end thing that works.
+- In `scope.md` — describe the first slice as the unit of work.
+- In `TaskCreate` lists — each task should advance one slice end-to-end where possible.
+
+Exceptions: pure infrastructure with no user-visible surface yet (e.g. a shared lib with no consumers), or refactors that explicitly touch one layer across many call sites. Name the exception in the plan when it applies.
+
 ## Commit and push defaults
 
 When the user asks you to commit and push changes, default to a feature branch and PR — **never push directly to `main`**. This applies to every request, not just the planning workflow above. The planning workflow is one specific instance of this rule.

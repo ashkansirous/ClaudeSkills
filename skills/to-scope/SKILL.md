@@ -53,6 +53,13 @@ The shape of the solution at a high level. Not a full design — just
 enough that a reader knows roughly what we are going to build or change.
 Bullet points are fine.
 
+If the work spans multiple stack layers (DB → service → API → UI),
+describe the **first vertical slice** — the smallest end-to-end change
+that produces user-visible value — as the unit of work, and note that
+subsequent slices follow the same pattern. Do not describe the work as
+"all migrations, then all services, then all UI" — that is a horizontal
+breakdown and is not what the user wants.
+
 ## Out of Scope
 
 Things explicitly NOT being done in this piece of work, especially
