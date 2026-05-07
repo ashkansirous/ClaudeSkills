@@ -15,6 +15,17 @@ When the user explicitly kicks off planning with one of the phrases `let's plan 
 
 Confirm with the user before pushing or opening the PR.
 
+## Commit and push defaults
+
+When the user asks you to commit and push changes, default to a feature branch and PR — **never push directly to `main`**. This applies to every request, not just the planning workflow above. The planning workflow is one specific instance of this rule.
+
+1. Create a branch from `main` named `feat/<slug>`, `fix/<slug>`, or `chore/<slug>` based on the change.
+2. Commit on the branch.
+3. Push the branch with `-u`.
+4. Open a PR against `main` with `gh pr create` so the user can review on GitHub.
+
+Push directly to `main` only when the user explicitly asks for it (e.g. "commit straight to main", "push to main directly", "skip the PR"). A generic "yes" in response to "should I commit and push?" is **not** authorization to skip the PR flow — assume PR.
+
 ## Project scaffolding
 
 For every project you touch:
