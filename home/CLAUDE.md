@@ -33,6 +33,7 @@ For every project you touch:
 - **README.md** — if missing, create one. Keep it up to date as the project evolves.
 - **CLAUDE.md** — if missing, create one with project-specific guidance.
 - **AGENTS.md** — if missing, create one whose entire body is `@CLAUDE.md` so other agents read the same instructions as Claude Code.
+- **.gitignore** — if missing, create one using a template that matches the project's stack. Combine the appropriate templates from [github/gitignore](https://github.com/github/gitignore) for each language/framework in use (e.g. `Node.gitignore` for TypeScript/React, `Python.gitignore`, `VisualStudio.gitignore` for C#/.NET). Always include OS noise (`.DS_Store`, `Thumbs.db`) and editor swap files; for IDE folders (`.vscode/`, `.idea/`), match the project's existing convention. Update it as new tooling is introduced.
 
 ## Language and stack defaults
 
