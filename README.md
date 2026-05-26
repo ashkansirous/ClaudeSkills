@@ -23,6 +23,12 @@ ClaudeSkills/
 - [`grill-me`](skills/grill-me/SKILL.md) — interview me about a plan/design until we reach shared understanding.
 - [`quick-grill`](skills/quick-grill/SKILL.md) — fast variant of grill-me: at most 4 questions, then recommendations for the rest.
 - [`to-scope`](skills/to-scope/SKILL.md) — synthesize current context into a lightweight `scope.md` at the repo root; precursor to the full `plan.md` workflow.
+- [`scaffold-monorepo`](skills/scaffold-monorepo/SKILL.md) — bootstrap a polyglot monorepo skeleton (folders, root README/CLAUDE.md/AGENTS.md/.gitignore, git init, optional GitHub remote).
+- [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a C# .NET 10 Web API under `/backend` with a health endpoint, Dockerfile, and xUnit tests.
+- [`scaffold-react-app`](skills/scaffold-react-app/SKILL.md) — drop a TypeScript 6 + React 19 Vite app under `/frontend` with ESLint and a sample page that hits the backend health endpoint.
+- [`scaffold-iac`](skills/scaffold-iac/SKILL.md) — scaffold Terraform under `/infra` for GCP or AWS (provider chosen at invocation time), with remote state, container hosting, static site, secrets, and OIDC for CI.
+- [`scaffold-github-actions`](skills/scaffold-github-actions/SKILL.md) — generate GitHub Actions workflows under `.github/workflows/` for whichever monorepo components exist; OIDC cloud auth, no long-lived secrets.
+- [`scaffold-genai-service`](skills/scaffold-genai-service/SKILL.md) — scaffold a GenAI/LLM service under `/ai-services/<name>/` with the Anthropic SDK and prompt caching wired up.
 
 ## Install
 
