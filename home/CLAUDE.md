@@ -58,12 +58,7 @@ If no language is established yet in the project:
 - **Frontend** — always TypeScript + React. No need to ask.
 - **Backend** — either Python or C#. Always ask the user which one before scaffolding.
 
-Use the latest stable versions:
-
-- C# 15 on .NET 10
-- Python 3.14
-- TypeScript 6
-- React 19
+Always use the **latest stable** versions of C# / .NET, Python, TypeScript, and React. Do not pin specific majors here — they go stale fast. At the start of any scaffolding work, fetch the current stable major via the **context7 MCP** (e.g. `/dotnet/aspnetcore`, `/python/cpython`, `/microsoft/TypeScript`, `/reactjs/react.dev`) and use whatever it reports.
 
 ## Code quality
 
