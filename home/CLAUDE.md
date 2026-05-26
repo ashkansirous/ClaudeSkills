@@ -6,7 +6,7 @@ These apply to every project on machines where ClaudeSkills is installed. Synced
 
 When the user explicitly kicks off planning with one of the phrases `let's plan ...`, `start a plan for ...`, or `plan this ...`, follow these six steps:
 
-1. **Clarify intent.** Use the `grill-me` skill to interview the user about goals and main purpose until you reach shared understanding. Skip only if intent is already crystal clear from the user's message.
+1. **Clarify intent.** Use the `RefineScope` skill to interview the user about goals and main purpose (at most 4 questions, then recommendations for the rest) until you reach shared understanding. Skip only if intent is already crystal clear from the user's message.
 2. **Branch.** Create a new branch from `main` named `plan/<short-slug>` derived from the topic.
 3. **Write the plan.** Save it to `plan.md` at the repo root. Overwrite if it exists — `plan.md` is branch-scoped.
 4. **Reflect the plan.** If the plan introduces new conventions, commands, or behaviors, update `CLAUDE.md`. If it changes user-facing behavior or install steps, update `README.md`. If neither applies, leave them alone.

@@ -12,16 +12,15 @@ ClaudeSkills/
     CLAUDE.md            # merged into ~/.claude/CLAUDE.md (marker-bracketed)
     settings.json        # deep-merged into ~/.claude/settings.json
   skills/
-    grill-me/
-      SKILL.md           # symlinked into ~/.claude/skills/grill-me/
+    RefineScope/
+      SKILL.md           # symlinked into ~/.claude/skills/RefineScope/
     <next-skill>/
       SKILL.md
 ```
 
 ## Skills
 
-- [`grill-me`](skills/grill-me/SKILL.md) — interview me about a plan/design until we reach shared understanding.
-- [`quick-grill`](skills/quick-grill/SKILL.md) — fast variant of grill-me: at most 4 questions, then recommendations for the rest.
+- [`RefineScope`](skills/RefineScope/SKILL.md) — interview me with at most 4 high-leverage questions about a plan/design, then recommend answers for the rest in one batch (the "clarify intent" step of the planning workflow).
 - [`to-scope`](skills/to-scope/SKILL.md) — synthesize current context into a lightweight `scope.md` at the repo root; precursor to the full `plan.md` workflow.
 - [`scaffold-monorepo`](skills/scaffold-monorepo/SKILL.md) — bootstrap a polyglot monorepo skeleton (folders, root README/CLAUDE.md/AGENTS.md/.gitignore, git init, optional GitHub remote).
 - [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a C# .NET 10 Web API under `/backend` with a health endpoint, Dockerfile, and xUnit tests.
