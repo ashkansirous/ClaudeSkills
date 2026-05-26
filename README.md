@@ -28,6 +28,10 @@ ClaudeSkills/
 - [`scaffold-iac`](skills/scaffold-iac/SKILL.md) — scaffold Terraform under `/infra` for GCP or AWS (provider chosen at invocation time), with remote state, container hosting, static site, secrets, and OIDC for CI.
 - [`scaffold-github-actions`](skills/scaffold-github-actions/SKILL.md) — generate GitHub Actions workflows under `.github/workflows/` for whichever monorepo components exist; OIDC cloud auth, no long-lived secrets.
 - [`scaffold-genai-service`](skills/scaffold-genai-service/SKILL.md) — scaffold a GenAI/LLM service under `/ai-services/<name>/` with the Anthropic SDK and prompt caching wired up.
+- [`implement-infrastructure`](skills/implement-infrastructure/SKILL.md) — add resources/modules to an existing Terraform setup; detects GCP vs AWS and fetches current provider docs via context7.
+- [`implement-backend`](skills/implement-backend/SKILL.md) — implement backend features as vertical slices in the existing /backend (C# or Python); fetches current framework docs via context7.
+- [`implement-frontend`](skills/implement-frontend/SKILL.md) — implement UI features in the existing /frontend React + TypeScript app; detects libraries already in use, enforces ESLint.
+- [`implement-tests`](skills/implement-tests/SKILL.md) — write tests for existing code in any stack (xUnit / pytest / Vitest / Playwright / etc.); detects the framework and applies its idioms.
 
 ## Install
 
