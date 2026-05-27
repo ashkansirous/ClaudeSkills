@@ -32,6 +32,7 @@ ClaudeSkills/
 - [`implement-backend`](skills/implement-backend/SKILL.md) — implement backend features as vertical slices in the existing /backend (C# or Python); fetches current framework docs via context7.
 - [`implement-frontend`](skills/implement-frontend/SKILL.md) — implement UI features in the existing /frontend React + TypeScript app; detects libraries already in use, enforces ESLint.
 - [`implement-tests`](skills/implement-tests/SKILL.md) — write tests for existing code in any stack (xUnit / pytest / Vitest / Playwright / etc.); detects the framework and applies its idioms.
+- [`implement-e2e-tests`](skills/implement-e2e-tests/SKILL.md) — write end-to-end UI tests with Playwright (page-object model, accessible-name selectors, trace-on-failure); prefers the Playwright MCP when registered, falls back to standalone `@playwright/test` otherwise.
 
 ## Install
 

@@ -64,6 +64,17 @@ If no language is established yet in the project:
 
 Always use the **latest stable** versions of C# / .NET, Python, TypeScript, and React. Do not pin specific majors here — they go stale fast. At the start of any scaffolding work, fetch the current stable major via the **context7 MCP** (e.g. `/dotnet/aspnetcore`, `/python/cpython`, `/microsoft/TypeScript`, `/reactjs/react.dev`) and use whatever it reports.
 
+### Backend architecture: offer choices, don't pick silently
+
+For any **new** backend work (scaffolding a fresh `/backend`, or implementing the first feature in a backend that has no clear architecture yet), present 2–3 architectural options to the user **before** writing code and let them pick. Do not silently default to one shape. Present them as a short numbered list, mark the recommended default, and one-sentence why each one fits.
+
+Per-language defaults to recommend:
+
+- **C# / .NET** — recommended default is **Clean Architecture + DDD**: separate projects for `Domain` (entities, value objects, aggregates, domain events, repository *interfaces* — zero framework dependencies), `Application` (use cases, commands/queries, DTOs, orchestration), `Infrastructure` (EF Core / external API clients / persistence implementations of the Domain interfaces), and `Api` (endpoints, request/response models, DI wiring). Alternatives worth offering: **vertical-slice architecture** (each feature folder owns its full slice — closer to "feature-first"), **modular monolith** (each bounded context is its own assembly with a public contract), or **simple 3-layer N-tier** (only for genuinely small/throwaway apps). Recommend Clean Architecture + DDD unless the user steers elsewhere.
+- **Python** — ask the user. Reasonable options to surface: **hexagonal / ports-and-adapters**, **layered (controllers / services / repositories)**, or **vertical-slice / feature folders**. No silent default — Python projects vary too much.
+
+When the existing `/backend` **already** has an architecture (folders, project structure, naming conventions all point at one shape), do **not** re-pitch alternatives — detect it, name it back to the user briefly ("this project follows Clean Architecture — I'll add the feature the same way"), and follow it precisely. The choice is only at greenfield time.
+
 ### Context7 is a hard precondition, not a guideline
 
 Do **not** write a single line of code that touches a third-party library, framework, SDK, CLI flag, build tool, or cloud-service API until you have logged a context7 query against the relevant library ID. This includes:
@@ -107,6 +118,22 @@ These apply to **every** backend you touch — scaffolds, feature work, hot-fixe
 2. **Components composed of small pieces.** A component over ~150 lines is a smell — break it into a container + presentational children, or extract hooks. Each component does one thing.
 3. **Hooks for side effects and shared logic.** `useEffect` belongs in custom hooks named for what they do (`useLocation`, `useOutfit`), not inlined inside page components when the logic is reusable.
 4. **No business logic in JSX.** Compute in hooks or memos, render the result. JSX should read top-to-bottom as a description of the page.
+
+## Testing UIs: Playwright MCP first
+
+Whenever a task involves **driving a real browser** — writing E2E tests, verifying a UI change in the running app, taking a screenshot, reproducing a UI bug — **prefer the Playwright MCP** if it is registered in the current Claude Code session (look for tools whose names contain `playwright`, typically prefixed `mcp__`). The MCP lets you navigate, click, fill, snapshot the DOM, and read accessible names directly, without writing or running shell commands.
+
+State which Playwright MCP tools you're about to call before calling them, so the rule is visible in transcripts (mirrors the context7 rule).
+
+If the Playwright MCP is **not** available in the current session, do not silently fall back. Surface the gap to the user and recommend a replacement, in this preference order:
+
+1. **Standalone `@playwright/test`** — install (or use) it in `/frontend/` and run `npx playwright test`. Best when E2E is going into CI anyway.
+2. **Manual verification with screenshots / curl** — fine for one-shot bug confirmation, useless as a regression test. Mention it as a stopgap only.
+3. **Pause and ask** — if the MCP was expected to be there, fixing the MCP setup may be the right move rather than working around it.
+
+Recommend (1) by default when the MCP is absent, but say explicitly "Playwright MCP would normally be preferred — it's not registered in this session" so the user can choose to fix the setup instead.
+
+For unit / component / hook tests, this rule does **not** apply — those go through `implement-tests` (Vitest, Testing Library, etc.) with no browser involved.
 
 ## Build pipelines
 

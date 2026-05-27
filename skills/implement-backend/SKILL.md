@@ -42,6 +42,31 @@ Also read:
 - The closest existing feature to copy patterns from (folder
   structure, naming, DI registration style, error handling).
 
+## Detect the architecture (or surface options)
+
+After detecting the language, name the architecture out loud. Look at
+the project layout to classify it:
+
+| Signals                                                  | Architecture        |
+| -------------------------------------------------------- | ------------------- |
+| `Domain` / `Application` / `Infrastructure` / `Api` `.csproj`s, repository interfaces in `Domain`, EF Core implementations in `Infrastructure` | Clean Architecture + DDD |
+| `Features/<feature>/` folders each owning handler + DTOs + persistence | Vertical-slice architecture |
+| Multiple bounded-context assemblies with public contracts | Modular monolith    |
+| Single project with `Api` / `Services` / `Data` folders  | Simple 3-layer N-tier |
+
+Tell the user briefly which one you detected ("This project follows
+Clean Architecture + DDD — I'll add the feature the same way") and
+then follow it precisely. Do **not** re-pitch alternatives when an
+architecture is already in place.
+
+**If no clear architecture is visible** (e.g. the project is fresh
+with just `Program.cs` and a folder or two), apply the
+`home/CLAUDE.md` "Backend architecture: offer choices" rule —
+surface 2–3 options with a recommended default before writing the
+first feature. For C#, the recommended default is **Clean Architecture
++ DDD**; for Python, ask. The choice is one-time; once made, every
+subsequent feature follows it without re-prompting.
+
 ## Fetch current docs before writing code — HARD PRECONDITION
 
 Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**

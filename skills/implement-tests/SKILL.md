@@ -24,6 +24,10 @@ Do **not** invoke this skill:
   `scaffold-csharp-api` / `scaffold-react-app` skills.
 - To write smoke tests purely for coverage numbers — tests must
   meaningfully exercise behaviour.
+- **For end-to-end UI tests that drive a real browser.** Hand off to
+  `implement-e2e-tests` instead — that skill is Playwright-focused
+  and prefers the Playwright MCP. Component-level Vitest +
+  Testing Library tests still belong here.
 
 ## Detect the framework first
 
@@ -53,7 +57,9 @@ detected framework:
   `/tiangolo/fastapi` for HTTP-client-based testing).
 - `/vitest-dev/vitest` for Vitest (plus
   `/testing-library/react-testing-library` for React).
-- `/microsoft/playwright` for Playwright.
+- `/microsoft/playwright` for Playwright — but for full E2E flows,
+  prefer the dedicated `implement-e2e-tests` skill, which knows to
+  use the Playwright MCP if it's registered in this session.
 
 State the library IDs you're about to query before calling, so the
 user sees the rule being followed. Framework APIs change between

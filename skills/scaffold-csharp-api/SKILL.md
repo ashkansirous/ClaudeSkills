@@ -52,12 +52,38 @@ current GA release.
      machine is on an older major than current GA, ask whether to
      proceed or upgrade first.
 
-2. **Generate the projects with a layered structure.** Per the backend
-   code-quality rules in `home/CLAUDE.md`, even a minimal API has four
-   layers. Create them as separate `*.csproj` projects (preferred) or, if
-   the user explicitly asks to keep it single-project, as separate
-   folders inside `Api/` with `// LAYER:` comments and a dependency
-   direction enforced by code review:
+2. **Offer architecture choices and confirm.** Per the
+   `home/CLAUDE.md` "Backend architecture: offer choices" rule, do
+   **not** silently scaffold one shape. Show the user a short list
+   and let them pick:
+
+   > Before generating, pick the architecture for `/backend`:
+   >
+   > 1. **Clean Architecture + DDD** *(recommended)* — `Domain` /
+   >    `Application` / `Infrastructure` / `Api` projects, with DDD
+   >    building blocks (entities, value objects, aggregates, domain
+   >    events, repository interfaces in `Domain`). Best when the
+   >    business logic is non-trivial and likely to grow.
+   > 2. **Vertical-slice architecture** — one folder per feature
+   >    (`Features/Orders/`, `Features/Users/`), each owning its
+   >    handler + DTOs + persistence. Lighter for CRUD-heavy apps.
+   > 3. **Modular monolith** — each bounded context as its own
+   >    assembly with a public contract; appropriate when you already
+   >    know the contexts.
+   > 4. **Simple 3-layer N-tier** — `Api` / `Services` / `Data`. Only
+   >    for throwaway or genuinely small apps.
+   >
+   > Default is #1 unless you say otherwise.
+
+   Wait for the user to confirm before generating. The rest of this
+   skill describes the **Clean Architecture + DDD** path (the
+   default); if the user picks something else, adapt the project
+   layout and the seed files accordingly but keep the
+   no-magic-strings / enums / validated-inputs rules.
+
+3. **Generate the projects (Clean Architecture + DDD layout).** Per
+   the backend code-quality rules in `home/CLAUDE.md`, four layers as
+   separate `*.csproj` projects:
 
    ```bash
    cd backend
@@ -79,44 +105,83 @@ current GA release.
    dotnet add Api.Tests/Api.Tests.csproj           reference Api/Api.csproj
    ```
 
-   **Domain** holds entities, value objects, enums, and domain services with
-   zero framework dependencies. **Application** holds use cases, DTOs, and
-   orchestration. **Infrastructure** holds external API clients, persistence,
-   and file I/O. **Api** holds endpoints, request/response models, and DI
-   wiring.
+   **Domain** holds entities, value objects, aggregates, domain
+   events, enums, and repository *interfaces* — zero framework
+   dependencies. **Application** holds use cases / command + query
+   handlers, DTOs, and orchestration. **Infrastructure** holds
+   external API clients, persistence (EF Core implementations of the
+   Domain repository interfaces), and file I/O. **Api** holds
+   endpoints, request/response models, and DI wiring.
 
-3. **Replace boilerplate with a minimal vertical slice that demonstrates
-   the layering and the conventions:**
-   - `Domain/Health/HealthStatus.cs` — an `enum HealthStatus { Ok, Degraded, Down }`. Demonstrates enums-over-strings.
-   - `Application/Health/IHealthCheck.cs` + `HealthCheckService.cs` — service returns `HealthStatus`, not a string.
-   - `Api/Endpoints/HealthEndpoints.cs` — endpoint maps `HealthStatus` to the response DTO. No business logic in `Program.cs`.
-   - `Api/Contracts/HealthResponse.cs` — response DTO with the enum serialized as a string at the boundary only (via `JsonStringEnumConverter`).
-   - `Api/Constants/RouteKeys.cs` — `public const string Health = "/health";`. Demonstrates no-magic-strings.
+4. **Seed the DDD building blocks in `Domain/`.** Even though the
+   first slice is trivial, scaffold the abstractions the *next*
+   feature will reach for:
+
+   - `Domain/Common/Entity.cs` — base class with an `Id` of type
+     `Guid` (or strongly-typed id), equality by `Id`, and a
+     protected constructor for EF Core.
+   - `Domain/Common/ValueObject.cs` — abstract base with structural
+     equality (override `GetEqualityComponents`).
+   - `Domain/Common/IAggregateRoot.cs` — marker interface;
+     aggregates implement it.
+   - `Domain/Common/DomainEvent.cs` — base record with
+     `OccurredOnUtc`; `Entity` exposes
+     `IReadOnlyCollection<DomainEvent> DomainEvents` and
+     `Raise(...) / ClearDomainEvents()`.
+   - `Domain/Common/IRepository.cs` — generic repository contract
+     (`GetByIdAsync`, `Add`, `Remove`) parameterised on aggregate
+     root + id type. Concrete repositories live in
+     `Infrastructure/Persistence/`.
+
+   These are five small files but they encode the DDD contract for
+   the rest of the project — without them, the "Domain layer" is
+   just a folder.
+
+5. **Replace boilerplate with a minimal vertical slice that
+   demonstrates the layering and the conventions:**
+   - `Domain/Health/HealthStatus.cs` — an
+     `enum HealthStatus { Ok, Degraded, Down }`. Demonstrates
+     enums-over-strings.
+   - `Application/Health/IHealthCheck.cs` +
+     `HealthCheckService.cs` — service returns `HealthStatus`, not
+     a string.
+   - `Api/Endpoints/HealthEndpoints.cs` — endpoint maps
+     `HealthStatus` to the response DTO. No business logic in
+     `Program.cs`.
+   - `Api/Contracts/HealthResponse.cs` — response DTO with the enum
+     serialized as a string at the boundary only (via
+     `JsonStringEnumConverter`).
+   - `Api/Constants/RouteKeys.cs` —
+     `public const string Health = "/health";`. Demonstrates
+     no-magic-strings.
    - `Api.Tests/HealthEndpointTests.cs` — one xUnit test that calls
-     `RouteKeys.Health` via `WebApplicationFactory` and asserts `200 OK`.
+     `RouteKeys.Health` via `WebApplicationFactory` and asserts
+     `200 OK`.
    - Delete the default `WeatherForecast` sample.
 
-   Even though this is one endpoint, scaffold it the way real features
-   should be built. The structure exists so the *next* feature has a
-   pattern to follow.
+   Even though this is one endpoint, scaffold it the way real
+   features should be built. The structure exists so the *next*
+   feature has a pattern to follow.
 
-4. **Add a `Dockerfile`** at `backend/Dockerfile` — multi-stage build
+6. **Add a `Dockerfile`** at `backend/Dockerfile` — multi-stage build
    using the matching `mcr.microsoft.com/dotnet/sdk:<version>` and
    `aspnet:<version>` images (substitute the major version the project
    targets). Expose port 8080, run as non-root.
 
-5. **Add `backend/README.md`** — sections: run locally
+7. **Add `backend/README.md`** — sections: run locally
    (`dotnet run --project Api`), test (`dotnet test`), build container
-   (`docker build`).
+   (`docker build`), and a short paragraph naming the architecture
+   (e.g. "Clean Architecture + DDD") and the dependency direction
+   between projects.
 
-6. **Sanity check:**
+8. **Sanity check:**
    - `dotnet build` succeeds.
    - `dotnet test` passes.
    - `dotnet run --project Api` serves `/health` returning `200`.
 
-7. **Commit on the current feature branch** with a message like
-   `feat(backend): scaffold .NET Web API with health endpoint`. Do not
-   push or open a PR unless asked.
+9. **Commit on the current feature branch** with a message like
+   `feat(backend): scaffold .NET Web API with Clean Architecture + DDD`.
+   Do not push or open a PR unless asked.
 
 ## Code quality reminders (from home/CLAUDE.md "Backend code quality")
 
