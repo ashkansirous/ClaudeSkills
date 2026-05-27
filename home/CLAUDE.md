@@ -6,7 +6,7 @@ These apply to every project on machines where ClaudeSkills is installed. Synced
 
 When the user explicitly kicks off planning with one of the phrases `let's plan ...`, `start a plan for ...`, or `plan this ...`, follow these six steps:
 
-1. **Clarify intent.** Use the `grill-me` skill to interview the user about goals and main purpose until you reach shared understanding. Skip only if intent is already crystal clear from the user's message.
+1. **Clarify intent.** Use the `RefineScope` skill to interview the user about goals and main purpose (at most 4 questions, then recommendations for the rest) until you reach shared understanding. Skip only if intent is already crystal clear from the user's message.
 2. **Branch.** Create a new branch from `main` named `plan/<short-slug>` derived from the topic.
 3. **Write the plan.** Save it to `plan.md` at the repo root. Overwrite if it exists — `plan.md` is branch-scoped.
 4. **Reflect the plan.** If the plan introduces new conventions, commands, or behaviors, update `CLAUDE.md`. If it changes user-facing behavior or install steps, update `README.md`. If neither applies, leave them alone.
@@ -58,12 +58,7 @@ If no language is established yet in the project:
 - **Frontend** — always TypeScript + React. No need to ask.
 - **Backend** — either Python or C#. Always ask the user which one before scaffolding.
 
-Use the latest stable versions:
-
-- C# 15 on .NET 10
-- Python 3.14
-- TypeScript 6
-- React 19
+Always use the **latest stable** versions of C# / .NET, Python, TypeScript, and React. Do not pin specific majors here — they go stale fast. At the start of any scaffolding work, fetch the current stable major via the **context7 MCP** (e.g. `/dotnet/aspnetcore`, `/python/cpython`, `/microsoft/TypeScript`, `/reactjs/react.dev`) and use whatever it reports.
 
 ## Code quality
 

@@ -12,17 +12,26 @@ ClaudeSkills/
     CLAUDE.md            # merged into ~/.claude/CLAUDE.md (marker-bracketed)
     settings.json        # deep-merged into ~/.claude/settings.json
   skills/
-    grill-me/
-      SKILL.md           # symlinked into ~/.claude/skills/grill-me/
+    RefineScope/
+      SKILL.md           # symlinked into ~/.claude/skills/RefineScope/
     <next-skill>/
       SKILL.md
 ```
 
 ## Skills
 
-- [`grill-me`](skills/grill-me/SKILL.md) — interview me about a plan/design until we reach shared understanding.
-- [`quick-grill`](skills/quick-grill/SKILL.md) — fast variant of grill-me: at most 4 questions, then recommendations for the rest.
+- [`RefineScope`](skills/RefineScope/SKILL.md) — interview me with at most 4 high-leverage questions about a plan/design, then recommend answers for the rest in one batch (the "clarify intent" step of the planning workflow).
 - [`to-scope`](skills/to-scope/SKILL.md) — synthesize current context into a lightweight `scope.md` at the repo root; precursor to the full `plan.md` workflow.
+- [`scaffold-monorepo`](skills/scaffold-monorepo/SKILL.md) — bootstrap a polyglot monorepo skeleton (folders, root README/CLAUDE.md/AGENTS.md/.gitignore, git init, optional GitHub remote).
+- [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a C# .NET 10 Web API under `/backend` with a health endpoint, Dockerfile, and xUnit tests.
+- [`scaffold-react-app`](skills/scaffold-react-app/SKILL.md) — drop a TypeScript 6 + React 19 Vite app under `/frontend` with ESLint and a sample page that hits the backend health endpoint.
+- [`scaffold-iac`](skills/scaffold-iac/SKILL.md) — scaffold Terraform under `/infra` for GCP or AWS (provider chosen at invocation time), with remote state, container hosting, static site, secrets, and OIDC for CI.
+- [`scaffold-github-actions`](skills/scaffold-github-actions/SKILL.md) — generate GitHub Actions workflows under `.github/workflows/` for whichever monorepo components exist; OIDC cloud auth, no long-lived secrets.
+- [`scaffold-genai-service`](skills/scaffold-genai-service/SKILL.md) — scaffold a GenAI/LLM service under `/ai-services/<name>/` with the Anthropic SDK and prompt caching wired up.
+- [`implement-infrastructure`](skills/implement-infrastructure/SKILL.md) — add resources/modules to an existing Terraform setup; detects GCP vs AWS and fetches current provider docs via context7.
+- [`implement-backend`](skills/implement-backend/SKILL.md) — implement backend features as vertical slices in the existing /backend (C# or Python); fetches current framework docs via context7.
+- [`implement-frontend`](skills/implement-frontend/SKILL.md) — implement UI features in the existing /frontend React + TypeScript app; detects libraries already in use, enforces ESLint.
+- [`implement-tests`](skills/implement-tests/SKILL.md) — write tests for existing code in any stack (xUnit / pytest / Vitest / Playwright / etc.); detects the framework and applies its idioms.
 
 ## Install
 

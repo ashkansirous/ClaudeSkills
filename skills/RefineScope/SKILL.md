@@ -1,9 +1,27 @@
 ---
-name: quick-grill
-description: Interview the user with at most 4 high-leverage questions about a plan or design, then recommend answers for the remaining open decisions for the user to approve in one batch. Use when the user wants a fast clarification pass, mentions "quick grill", "grill me quick", "fast grill", or wants a lighter alternative to the relentless grill-me skill.
+name: RefineScope
+description: Interview the user with at most 4 high-leverage questions about a plan or design, then recommend answers for the remaining open decisions for the user to approve in one batch. Use when the user wants a fast clarification pass before planning or scoping work, or mentions "refine scope", "refine the scope", "RefineScope", "quick clarify", or invokes `/RefineScope`.
 ---
 
 Walk the design tree for the user's plan and identify every open decision.
+
+## When to use this skill
+
+Invoke this skill **only**:
+
+- When the user has a plan or design and wants a fast clarification
+  pass before committing to it.
+- As the "clarify intent" step at the start of the planning workflow in
+  `home/CLAUDE.md`.
+
+Do **not** invoke this skill:
+
+- For a free-form chat that has not yet produced a candidate plan or
+  design — ask the user to share their plan first.
+- When the user has already approved a plan — they want execution, not
+  more questions.
+
+## Process
 
 Pick at most 4 questions to ask the user. Choose the ones with the highest
 information gain — i.e. answers that resolve or constrain the most other
