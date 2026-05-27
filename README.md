@@ -23,8 +23,8 @@ ClaudeSkills/
 - [`RefineScope`](skills/RefineScope/SKILL.md) — interview me with at most 4 high-leverage questions about a plan/design, then recommend answers for the rest in one batch (the "clarify intent" step of the planning workflow).
 - [`to-scope`](skills/to-scope/SKILL.md) — synthesize current context into a lightweight `scope.md` at the repo root; precursor to the full `plan.md` workflow.
 - [`scaffold-monorepo`](skills/scaffold-monorepo/SKILL.md) — bootstrap a polyglot monorepo skeleton (folders, root README/CLAUDE.md/AGENTS.md/.gitignore, git init, optional GitHub remote).
-- [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a C# .NET 10 Web API under `/backend` with a health endpoint, Dockerfile, and xUnit tests.
-- [`scaffold-react-app`](skills/scaffold-react-app/SKILL.md) — drop a TypeScript 6 + React 19 Vite app under `/frontend` with ESLint and a sample page that hits the backend health endpoint.
+- [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a layered C# .NET Web API under `/backend` (Domain / Application / Infrastructure / Api projects) with a health endpoint, Dockerfile, and xUnit tests; version fetched live via context7.
+- [`scaffold-react-app`](skills/scaffold-react-app/SKILL.md) — drop a TypeScript + React Vite app under `/frontend` with ESLint and a thin-`App.tsx` health page (page + hook + api client) wired to the backend; versions fetched live via context7.
 - [`scaffold-iac`](skills/scaffold-iac/SKILL.md) — scaffold Terraform under `/infra` for GCP or AWS (provider chosen at invocation time), with remote state, container hosting, static site, secrets, and OIDC for CI.
 - [`scaffold-github-actions`](skills/scaffold-github-actions/SKILL.md) — generate GitHub Actions workflows under `.github/workflows/` for whichever monorepo components exist; OIDC cloud auth, no long-lived secrets.
 - [`scaffold-genai-service`](skills/scaffold-genai-service/SKILL.md) — scaffold a GenAI/LLM service under `/ai-services/<name>/` with the Anthropic SDK and prompt caching wired up.

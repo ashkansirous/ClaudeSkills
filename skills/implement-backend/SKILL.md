@@ -42,18 +42,25 @@ Also read:
 - The closest existing feature to copy patterns from (folder
   structure, naming, DI registration style, error handling).
 
-## Fetch current docs before writing code
+## Fetch current docs before writing code — HARD PRECONDITION
 
-Use the **context7 MCP** for whatever stack you detected. Examples:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+write a single line of feature code until you have logged context7
+queries for every library you'll touch. Examples by stack:
 
 - C# / ASP.NET Core: `/dotnet/aspnetcore` + `/dotnet/efcore` (if EF
-  is in use) + library docs for anything you're adding.
+  is in use) + library docs for anything you're adding (`HttpClient`,
+  `FluentValidation`, `Polly`, etc.).
 - Python / FastAPI: `/tiangolo/fastapi` + `/pydantic/pydantic` +
   `/sqlalchemy/sqlalchemy` (or whichever ORM is in use).
 
-API surface and idioms shift between majors. Do not write controller
-attributes, dependency-injection registrations, or ORM queries from
-memory.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. API surface and idioms shift
+between majors. Do not write controller attributes,
+dependency-injection registrations, ORM queries, or `HttpClient`
+configuration from memory — "I already know this API" is the exact
+rationalization the rule exists to defeat. The "well-known" libraries
+are the *most* likely to have moved, not the least.
 
 ## Best practices (apply to whichever stack is detected)
 
@@ -100,6 +107,46 @@ form.
 10. **No business logic in controllers / endpoints.** The endpoint
     parses input, calls a service, formats the response. Logic goes
     in the service / domain layer.
+
+11. **No magic strings.** Any string that is a JSON key, dictionary
+    key, status discriminator, header name, route segment, or property
+    accessor must come from a `const` or `nameof(...)` (C#) /
+    `Model.field_name` (Python). For example, parsing JSON with
+    `root.GetProperty("name")` is wrong — it must be
+    `root.GetProperty(nameof(GeocodeResult.Name))` (with a
+    `[JsonPropertyName]` attribute mapping casing) or
+    `root.GetProperty(GeocodeJsonKeys.Name)` if the property name
+    doesn't match the JSON key. Group related constants in a static
+    class (C#) or module (Python). The litmus test: a typo in a key
+    must be a compile error, not a 200 with missing data.
+
+12. **Enums for closed sets.** Gender, role, status, kind, band,
+    forecast window, anything with a fixed vocabulary → `enum` (C#) or
+    `StrEnum` (Python). Pass enums through services; stringify only at
+    the API boundary (e.g. `JsonStringEnumConverter` in C#). If you
+    catch yourself writing `if (x == "foo" || x == "bar")`, stop and
+    introduce the enum.
+
+13. **Inputs are explicit and validated.** Request DTOs and endpoint
+    parameters are nullable with `[Required]` (C#) or pydantic
+    `Field(...)` with no default. A missing or renamed parameter from
+    the frontend must surface as a 400, never as a silent default. Map
+    validation failures to `ProblemDetails` (C#) or the framework's
+    standard error model.
+
+14. **Backend returns data, not user-facing copy.** Never construct
+    English sentences like `"Rain likely (40%) — bring a coat."` on
+    the backend. Return the structured fields
+    (`{ band: Warm, precipitationProbability: 40, isRainy: true }`)
+    and let the frontend compose the message. Backend-built copy
+    couples presentation to data and blocks i18n.
+
+15. **Layered structure** — Domain (entities, value objects, enums),
+    Application (use cases, DTOs), Infrastructure (HTTP clients,
+    persistence), Api (endpoints, request/response). Even a "small"
+    feature follows this. If the existing project doesn't have these
+    layers yet, propose adding them before piling more code into a
+    single project — flag it to the user and let them decide.
 
 ## Process
 

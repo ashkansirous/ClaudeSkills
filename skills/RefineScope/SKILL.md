@@ -53,5 +53,14 @@ Example phrasing: "This thread doesn't have a good name yet. Run
 Then the skill is done — hand control back to the caller. Do not write
 plan.md or take further action.
 
+**Reminder to the caller.** When RefineScope returns, the caller is
+responsible for executing the rest of the planning workflow in
+`home/CLAUDE.md` — in particular, writing the plan to **`plan.md` at
+the repo root** (not only the harness-provided plan path). If you are
+the caller and you've just received approval here, your next action is
+to write that file before doing anything else. The harness's plan file
+is for the agent's working memory; the project's `plan.md` is the
+record the user can see, commit, and tick off during implementation.
+
 If the plan has 4 or fewer total decisions, just ask all of them and skip
 the recommendation block.

@@ -41,9 +41,11 @@ Read the project to figure out which framework is in use:
 If multiple are present (e.g. Vitest for unit + Playwright for E2E),
 pick the one that fits the layer being tested.
 
-## Fetch current docs before writing tests
+## Fetch current docs before writing tests — HARD PRECONDITION
 
-Use the **context7 MCP** for the detected framework:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+write a single test until you have logged context7 queries for the
+detected framework:
 
 - `/xunit/xunit` for xUnit (plus `/dotnet/aspnetcore` for
   `WebApplicationFactory` / `TestServer` patterns).
@@ -53,8 +55,10 @@ Use the **context7 MCP** for the detected framework:
   `/testing-library/react-testing-library` for React).
 - `/microsoft/playwright` for Playwright.
 
-Framework APIs change. Don't write fixtures, async patterns, or
-mocking helpers from memory — verify against current docs.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Framework APIs change between
+majors — fixtures, async patterns, mocking helpers, query selectors
+(`getByRole` defaults moved). Don't write any of these from memory.
 
 ## Best practices (framework-agnostic)
 

@@ -24,17 +24,20 @@ Do **not** invoke this skill:
 - For adding a new component to an existing monorepo — those are
   separate skills.
 
-## Fetch current docs before running
+## Fetch current docs before running — HARD PRECONDITION
 
-Before doing anything else, use the **context7 MCP** to pull the current
-docs for any tool this skill will touch — at minimum:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+run `git init`, `gh repo create`, or write any tracked file in this
+skill until you have logged context7 queries against:
 
 - `gh` CLI (for the optional `gh repo create` step) — query
   `/cli/cli` or similar.
 - `github/gitignore` templates — for the `.gitignore` step.
 
-Do this even if you think you know the commands; tooling changes faster
-than training data.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Do this even if you think you know
+the commands; tooling changes faster than training data, and "I know
+git" is exactly the rationalization the rule exists to defeat.
 
 ## Process
 

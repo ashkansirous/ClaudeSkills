@@ -24,17 +24,23 @@ Do **not** invoke this skill:
   etc.) — those need a different skill once you decide on the approach.
 - To modify an existing AI service — edit the files directly.
 
-## Fetch current docs and versions before running
+## Fetch current docs and versions before running — HARD PRECONDITION
 
-Use the **context7 MCP** at the start of every invocation. Claude API
-features change often:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+scaffold any AI-service code until you have logged context7 queries
+against:
 
 - `/anthropics/anthropic-sdk-python`, `/anthropics/anthropic-sdk-typescript`, or `/anthropics/anthropic-sdk-dotnet` — depending on the language chosen.
 - `/anthropics/anthropic-cookbook` — for prompt caching and tool-use
   patterns currently recommended.
 
-Confirm the **latest stable Claude model ID** via context7 before
-hard-coding one. Do not rely on training-data knowledge of model names.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Claude API features change often
+— prompt-caching parameters, tool-use schemas, and model IDs in
+particular. Confirm the **latest stable Claude model ID** via
+context7 before hard-coding one. Do not rely on training-data
+knowledge of model names; the wrong model ID is a silent
+mis-deployment.
 
 ## Process
 

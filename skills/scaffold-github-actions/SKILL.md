@@ -25,10 +25,11 @@ Do **not** invoke this skill:
 - For non-GitHub CI (GitLab, Azure DevOps, CircleCI) — those would need
   separate skills.
 
-## Fetch current docs and versions before running
+## Fetch current docs and versions before running — HARD PRECONDITION
 
-Use the **context7 MCP** at the start of every invocation. Action
-versions and inputs shift more than people realise:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+write a single workflow YAML line until you have logged context7
+queries against:
 
 - `/actions/setup-dotnet` — for backend workflows.
 - `/actions/setup-node` — for frontend workflows.
@@ -37,8 +38,11 @@ versions and inputs shift more than people realise:
   `/aws-actions/configure-aws-credentials` — depending on which cloud
   was scaffolded in `/infra/`.
 
-Do not pin specific action `@vN` tags in this skill. Use whatever
-context7 reports as the current major.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Action versions and inputs shift
+more than people realise — and an outdated `@vN` tag can fail in CI
+with cryptic errors. Do not pin specific action `@vN` tags in this
+skill. Use whatever context7 reports as the current major.
 
 ## Process
 
