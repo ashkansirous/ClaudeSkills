@@ -24,6 +24,10 @@ Do **not** invoke this skill:
   `scaffold-csharp-api` / `scaffold-react-app` skills.
 - To write smoke tests purely for coverage numbers — tests must
   meaningfully exercise behaviour.
+- **For end-to-end UI tests that drive a real browser.** Hand off to
+  `implement-e2e-tests` instead — that skill is Playwright-focused
+  and prefers the Playwright MCP. Component-level Vitest +
+  Testing Library tests still belong here.
 
 ## Detect the framework first
 
@@ -41,9 +45,11 @@ Read the project to figure out which framework is in use:
 If multiple are present (e.g. Vitest for unit + Playwright for E2E),
 pick the one that fits the layer being tested.
 
-## Fetch current docs before writing tests
+## Fetch current docs before writing tests — HARD PRECONDITION
 
-Use the **context7 MCP** for the detected framework:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+write a single test until you have logged context7 queries for the
+detected framework:
 
 - `/xunit/xunit` for xUnit (plus `/dotnet/aspnetcore` for
   `WebApplicationFactory` / `TestServer` patterns).
@@ -51,10 +57,14 @@ Use the **context7 MCP** for the detected framework:
   `/tiangolo/fastapi` for HTTP-client-based testing).
 - `/vitest-dev/vitest` for Vitest (plus
   `/testing-library/react-testing-library` for React).
-- `/microsoft/playwright` for Playwright.
+- `/microsoft/playwright` for Playwright — but for full E2E flows,
+  prefer the dedicated `implement-e2e-tests` skill, which knows to
+  use the Playwright MCP if it's registered in this session.
 
-Framework APIs change. Don't write fixtures, async patterns, or
-mocking helpers from memory — verify against current docs.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Framework APIs change between
+majors — fixtures, async patterns, mocking helpers, query selectors
+(`getByRole` defaults moved). Don't write any of these from memory.
 
 ## Best practices (framework-agnostic)
 

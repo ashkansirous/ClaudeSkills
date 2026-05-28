@@ -46,21 +46,40 @@ Also read:
 - `eslint.config.js` for the project's lint rules.
 - `CLAUDE.md` / `AGENTS.md` for project-specific conventions.
 
-## Fetch current docs before writing code
+## Fetch current docs before writing code — HARD PRECONDITION
 
-Use the **context7 MCP** for every library you'll touch:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+write a single line of UI code until you have logged context7 queries
+for every library you'll touch:
 
-- `/reactjs/react.dev` — for hooks, suspense, server components, etc.
+- `/reactjs/react.dev` — for hooks, suspense, server components, and
+  the v6 `eslint-plugin-react-hooks` rules
+  (`react-hooks/set-state-in-effect`, `react-hooks/refs`, etc.) which
+  change the patterns you can write inside `useEffect`.
 - `/microsoft/TypeScript` — for current TS features (satisfies, const
   type parameters, etc.).
-- Library-specific docs (`/tanstack/query`, `/react-hook-form/react-hook-form`,
-  `/colinhacks/zod`, `/tailwindlabs/tailwindcss`, `/shadcn-ui/ui`, etc.)
-  for whatever you're using.
+- Library-specific docs (`/tanstack/query`,
+  `/react-hook-form/react-hook-form`, `/colinhacks/zod`,
+  `/tailwindlabs/tailwindcss`, `/shadcn-ui/ui`, etc.) for whatever
+  you're using.
 
-React 19 and modern TS have features that older training data may not
-reflect. Always verify.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. React 19, Tailwind v4, and the
+current lint plugins have idioms that older training data does not
+reflect. Always verify — "I already know React" is not a valid
+reason to skip; React 19 specifically broke patterns that worked in
+18.
 
 ## Best practices
+
+0. **`App.tsx` stays a thin shell.** It mounts providers (router,
+   query client, theme, error boundary) and renders the route tree —
+   typically 10–20 lines, no business logic, no `useState`, no
+   `useEffect` for data fetching. Real UI lives in
+   `src/pages/<Page>.tsx` or `src/features/<feature>/`. If a feature
+   request would add logic to `App.tsx`, create a page/feature
+   component instead. The same applies to other top-level shells
+   (`Layout.tsx`, `Root.tsx`) — they compose, they don't compute.
 
 1. **Function components + hooks only.** No class components.
 

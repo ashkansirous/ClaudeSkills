@@ -29,9 +29,11 @@ Do **not** invoke this skill:
 - To change cloud providers on an existing project — that's a migration,
   not a scaffold.
 
-## Fetch current docs and versions before running
+## Fetch current docs and versions before running — HARD PRECONDITION
 
-Use the **context7 MCP** at the start of every invocation:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+run `terraform init`, write a `versions.tf`, or scaffold any module
+until you have logged context7 queries against:
 
 - `/hashicorp/terraform` — confirm current Terraform major and module
   idioms.
@@ -40,8 +42,10 @@ Use the **context7 MCP** at the start of every invocation:
   and resource argument shapes (these change often).
 - `/google-github-actions/auth` or `/aws-actions/configure-aws-credentials` — for the CI OIDC step.
 
-Do not pin a specific Terraform or provider version in this skill. Use
-whatever context7 reports as current.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Do not pin a specific Terraform or
+provider version in this skill. Use whatever context7 reports as
+current.
 
 ## Process
 
@@ -76,6 +80,22 @@ whatever context7 reports as current.
 
    Each module gets its own `main.tf`, `variables.tf`, `outputs.tf`,
    and a `README.md` explaining inputs/outputs.
+
+   **Container image source — GHCR.** The `container-host` module
+   deploys an image, it doesn't build one. Per `home/CLAUDE.md`
+   "Dockerization & build artifacts", images are built by CI and
+   pushed to **GHCR** (`ghcr.io/<owner>/<repo>-<component>`). Expose
+   the image reference as a module variable (`image` /
+   `container_image`, default to the GHCR path with a `latest` or
+   pinned-tag default) rather than hard-coding it. Registry-pull auth:
+   - **GCP Cloud Run** can pull a *public* GHCR image with no extra
+     auth; for a private image, store a GHCR PAT in Secret Manager and
+     wire it as the service's pull credential.
+   - **AWS ECS Fargate** needs `repositoryCredentials` pointing at a
+     Secrets Manager secret holding the GHCR login when the image is
+     private.
+   Note this in the module README so the deploy step (in
+   `scaffold-github-actions`) and the hosting line up.
 
 4. **Remote state backend:**
    - **GCP:** GCS bucket with versioning + uniform bucket-level access.

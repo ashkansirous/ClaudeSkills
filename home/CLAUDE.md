@@ -4,16 +4,20 @@ These apply to every project on machines where ClaudeSkills is installed. Synced
 
 ## Planning workflow
 
-When the user explicitly kicks off planning with one of the phrases `let's plan ...`, `start a plan for ...`, or `plan this ...`, follow these six steps:
+Trigger this workflow whenever the user asks for a plan, whether or not they use a "magic" phrase. Phrases that should fire it include — but are not limited to — `let's plan ...`, `let's make a plan`, `make a plan`, `make me a plan`, `start a plan for ...`, `plan this ...`, `lets plan ...`, or running the `/RefineScope` skill with planning-shaped arguments. If you're unsure whether the user is asking for a plan or a quick chat, default to triggering the workflow — the cost of one extra `plan.md` is small; the cost of missing it is losing the audit trail of what was decided.
+
+Once triggered, follow these six steps:
 
 1. **Clarify intent.** Use the `RefineScope` skill to interview the user about goals and main purpose (at most 4 questions, then recommendations for the rest) until you reach shared understanding. Skip only if intent is already crystal clear from the user's message.
-2. **Branch.** Create a new branch from `main` named `plan/<short-slug>` derived from the topic.
-3. **Write the plan.** Save it to `plan.md` at the repo root. Overwrite if it exists — `plan.md` is branch-scoped.
+2. **Branch.** If this is a git repo, create a new branch from `main` named `plan/<short-slug>` derived from the topic. If it's not a git repo yet, skip the branch step (don't run `git init` without asking) but still proceed to step 3.
+3. **Write the plan to `plan.md` at the repo root.** This is non-negotiable. The plan file the harness may give you (e.g. `~/.claude/plans/<slug>.md`) is for the agent's working memory; the *project's* plan must live at `<repo>/plan.md` so the user can read, edit, and commit it. If both exist, keep them in sync — but `plan.md` at the repo root is the source of truth. Overwrite if it exists — `plan.md` is branch-scoped. After implementation, the plan stays in the repo as a record of what was built (and what was deliberately out of scope) — do not delete it.
 4. **Reflect the plan.** If the plan introduces new conventions, commands, or behaviors, update `CLAUDE.md`. If it changes user-facing behavior or install steps, update `README.md`. If neither applies, leave them alone.
-5. **Commit and push.** One commit per logical step (the plan itself, then each reflection). Push the branch with `-u` to set upstream.
-6. **Open a PR** against `main`. Title from the plan slug. Body = a 1-3 line summary plus a checklist of in-scope items from the plan.
+5. **Commit and push.** Only if this is a git repo. One commit per logical step (the plan itself, then each reflection). Push the branch with `-u` to set upstream.
+6. **Open a PR** against `main`. Only if this is a git repo with a remote. Title from the plan slug. Body = a 1-3 line summary plus a checklist of in-scope items from the plan.
 
 Confirm with the user before pushing or opening the PR.
+
+**Keeping `plan.md` honest during implementation.** As you work, tick off slices in `plan.md` (e.g. add a `[x]` next to a completed item) and add any scope changes the user agrees to. The plan is the record of what was built — if it drifts from reality, future-you and the user can't tell what was finished, what was skipped, and why.
 
 ## Task breakdown: vertical slices over horizontal layers
 
@@ -60,12 +64,88 @@ If no language is established yet in the project:
 
 Always use the **latest stable** versions of C# / .NET, Python, TypeScript, and React. Do not pin specific majors here — they go stale fast. At the start of any scaffolding work, fetch the current stable major via the **context7 MCP** (e.g. `/dotnet/aspnetcore`, `/python/cpython`, `/microsoft/TypeScript`, `/reactjs/react.dev`) and use whatever it reports.
 
+### Backend architecture: offer choices, don't pick silently
+
+For any **new** backend work (scaffolding a fresh `/backend`, or implementing the first feature in a backend that has no clear architecture yet), present 2–3 architectural options to the user **before** writing code and let them pick. Do not silently default to one shape. Present them as a short numbered list, mark the recommended default, and one-sentence why each one fits.
+
+Per-language defaults to recommend:
+
+- **C# / .NET** — recommended default is **Clean Architecture + DDD**: separate projects for `Domain` (entities, value objects, aggregates, domain events, repository *interfaces* — zero framework dependencies), `Application` (use cases, commands/queries, DTOs, orchestration), `Infrastructure` (EF Core / external API clients / persistence implementations of the Domain interfaces), and `Api` (endpoints, request/response models, DI wiring). Alternatives worth offering: **vertical-slice architecture** (each feature folder owns its full slice — closer to "feature-first"), **modular monolith** (each bounded context is its own assembly with a public contract), or **simple 3-layer N-tier** (only for genuinely small/throwaway apps). Recommend Clean Architecture + DDD unless the user steers elsewhere.
+- **Python** — ask the user. Reasonable options to surface: **hexagonal / ports-and-adapters**, **layered (controllers / services / repositories)**, or **vertical-slice / feature folders**. No silent default — Python projects vary too much.
+
+When the existing `/backend` **already** has an architecture (folders, project structure, naming conventions all point at one shape), do **not** re-pitch alternatives — detect it, name it back to the user briefly ("this project follows Clean Architecture — I'll add the feature the same way"), and follow it precisely. The choice is only at greenfield time.
+
+### Context7 is a hard precondition, not a guideline
+
+Do **not** write a single line of code that touches a third-party library, framework, SDK, CLI flag, build tool, or cloud-service API until you have logged a context7 query against the relevant library ID. This includes:
+
+- Scaffolding commands (`dotnet new`, `npm create vite`, `terraform init`) — flags shift between majors.
+- Framework idioms (Minimal API binding, React hooks, Tailwind config, lint plugin rules, EF Core queries).
+- HTTP clients, ORM queries, SDK calls.
+- "Well-known" libraries (React, Vite, ASP.NET Core, Tailwind, EF Core, FastAPI) — these are the *most* likely to have moved since training data, not the least.
+
+**No exceptions.** "Quick demo", "40-minute build", "I already know this API", and "the user is in a hurry" are not valid reasons to skip context7 — they are the exact rationalizations the rule exists to defeat. If a query takes 5 seconds and saves writing one stale pattern that ships into the user's codebase, it pays for itself instantly.
+
+**How to comply, visibly:**
+1. Before the first relevant tool call, name the library IDs you will query.
+2. Call `mcp__context7__resolve-library-id` if you don't already have the `/org/project` ID.
+3. Call `mcp__context7__query-docs` with the user's actual question (not single keywords).
+4. Only then write code.
+
+If you find yourself reaching for the Bash tool to run `dotnet new` or `npm create` before any context7 call has happened in this turn, stop and back up.
+
 ## Code quality
 
 - Every method does exactly one thing.
 - Method length: 3–30 lines. Do **not** write one-line methods unless the user explicitly asks for one.
 - Frontend code must pass ESLint. Run the linter and fix violations before declaring a task done.
 
+### Backend code quality (C# and Python)
+
+These apply to **every** backend you touch — scaffolds, feature work, hot-fixes. "Small project" and "demo" are not exceptions; structure makes the demo legible.
+
+1. **No magic strings.** Any string that is a JSON key, a property name, a dictionary key, a status discriminator, a header name, a route segment, or a config key must come from a named constant or — when it mirrors a property — from `nameof(...)` (C#) or `Model.field_name` (Python). Example: `r.GetProperty("name")` is wrong; `r.GetProperty(nameof(GeocodeResult.Name))` (with an attribute mapping casing if needed) or a `const string NameKey = "name";` group is right. The litmus test: a typo in a key should be a compile error, not a 200 OK with missing data.
+2. **Enums for closed sets.** Anything with a fixed, known set of values — gender, status, role, temperature band, forecast window, payment method — is an `enum` (C#) or `StrEnum` (Python), not a `string`. Pass enums through services and only stringify at the API boundary. If you find yourself writing `if (x == "foo" || x == "bar")`, you needed an enum two refactors ago.
+3. **Layered project structure.** Even a minimal API has layers: **Domain** (entities, value objects, enums, domain services — no framework dependencies), **Application** (use cases, DTOs, orchestration), **Infrastructure** (external APIs, persistence, file I/O), **Api** (endpoints, request/response models, DI wiring). For a small project, separate **projects** (`*.csproj`) are ideal; at minimum, separate **folders** with a one-direction dependency rule (Api → Application → Domain; Infrastructure → Application/Domain). Do not put HTTP-client code next to endpoint code in `Program.cs`.
+4. **Inputs are explicit and validated.** Endpoint parameters and request DTOs are **nullable** types with `[Required]` (C#) or `Field(...)` with no default (Python/pydantic), so a missing field returns 400 instead of silently using a default. A renamed query-string parameter on the frontend must break loudly on the backend — never silently fall back. Add `ProblemDetails` (or the framework equivalent) for validation failures.
+5. **Backend returns data, not user-facing copy.** Do not return English (or any locale) strings like `"Rain likely (40%) — stay dry."` from the backend. Return the structured values (`{ band: "warm", precipitationProbability: 40, isRainy: true }`) and let the frontend compose the message. Backend strings are an i18n trap and couple presentation to data.
+6. **Single responsibility, strictly.** If a method parses input *and* calls an API *and* maps a result, split it. The 3–30 line rule above is the floor; the real test is "can I describe what this method does in one sentence without using 'and'?"
+7. **Constants files / classes.** Group related constants (HTTP header names, claim types, weather codes, etc.) into a static class or module. Don't sprinkle them at the top of arbitrary files.
+
+### Frontend code quality (React / TypeScript)
+
+1. **`App.tsx` is a thin shell.** It mounts providers (router, query client, theme, error boundary) and renders the route tree — typically 10–20 lines. Real UI lives in `src/pages/<page>.tsx` or `src/features/<feature>/`. If `App.tsx` grows past ~30 lines or contains business logic, extract a page/feature component.
+2. **Components composed of small pieces.** A component over ~150 lines is a smell — break it into a container + presentational children, or extract hooks. Each component does one thing.
+3. **Hooks for side effects and shared logic.** `useEffect` belongs in custom hooks named for what they do (`useLocation`, `useOutfit`), not inlined inside page components when the logic is reusable.
+4. **No business logic in JSX.** Compute in hooks or memos, render the result. JSX should read top-to-bottom as a description of the page.
+
+## Testing UIs: Playwright MCP first
+
+Whenever a task involves **driving a real browser** — writing E2E tests, verifying a UI change in the running app, taking a screenshot, reproducing a UI bug — **prefer the Playwright MCP** if it is registered in the current Claude Code session (look for tools whose names contain `playwright`, typically prefixed `mcp__`). The MCP lets you navigate, click, fill, snapshot the DOM, and read accessible names directly, without writing or running shell commands.
+
+State which Playwright MCP tools you're about to call before calling them, so the rule is visible in transcripts (mirrors the context7 rule).
+
+If the Playwright MCP is **not** available in the current session, do not silently fall back. Surface the gap to the user and recommend a replacement, in this preference order:
+
+1. **Standalone `@playwright/test`** — install (or use) it in `/frontend/` and run `npx playwright test`. Best when E2E is going into CI anyway.
+2. **Manual verification with screenshots / curl** — fine for one-shot bug confirmation, useless as a regression test. Mention it as a stopgap only.
+3. **Pause and ask** — if the MCP was expected to be there, fixing the MCP setup may be the right move rather than working around it.
+
+Recommend (1) by default when the MCP is absent, but say explicitly "Playwright MCP would normally be preferred — it's not registered in this session" so the user can choose to fix the setup instead.
+
+For unit / component / hook tests, this rule does **not** apply — those go through `implement-tests` (Vitest, Testing Library, etc.) with no browser involved.
+
 ## Build pipelines
 
 Default CI/CD is GitHub Actions. Implement build pipelines as GitHub workflows under `.github/workflows/` unless the user specifies a different platform.
+
+### Dockerization & build artifacts
+
+Containerization is a first-class concern, decided at **scaffold time** — not bolted on after the fact. Every component is scaffolded so that the moment CI runs, it produces a deployable artifact with no extra wiring.
+
+- **Backend-type components** — `/backend` and every `/ai-services/<name>/` — ship a multi-stage `Dockerfile` **and** a `.dockerignore` from the moment they're scaffolded. The CI artifact for these is a **container image**, built and pushed to **GitHub Container Registry (GHCR)** at `ghcr.io/<owner>/<repo>-<component>`, tagged `latest`, `sha-<short-sha>`, and `<semver>` on a version tag. Image push authenticates with the workflow's built-in `GITHUB_TOKEN` (`permissions: packages: write`) — no long-lived secret. Cloud **deploy** steps still use OIDC.
+- **Frontend** (`/frontend`) is **not** containerized. Its build artifact is the static `dist/` bundle, deployed to static hosting (S3 + CloudFront / Cloud Storage + CDN) via the frontend workflow's sync step. Do not write a production `Dockerfile` for the frontend.
+- **Local dev** uses a single root `docker-compose.yml` that boots the whole stack. `scaffold-monorepo` emits it; each component scaffold registers its own service. Backend / ai-services use `build: ./<dir>`; the frontend runs as a stock `node:lts-alpine` dev container (bind mount + `npm run dev`), so it needs no Dockerfile. No database/cache service unless a component requires one.
+- **Dockerfile conventions** (for the components that have one): multi-stage build; base-image major confirmed via context7 (don't guess the tag); run as a **non-root** user; a single documented `EXPOSE` port; and a `.dockerignore` that keeps the build context small (`bin/`, `obj/`, `node_modules/`, `__pycache__/`, `.venv/`, `.git/`, test output).
+
+When you scaffold or extend any backend-type component, treat "does this produce a GHCR image artifact and a compose service?" as part of done — not an optional follow-up.

@@ -22,16 +22,17 @@ ClaudeSkills/
 
 - [`RefineScope`](skills/RefineScope/SKILL.md) — interview me with at most 4 high-leverage questions about a plan/design, then recommend answers for the rest in one batch (the "clarify intent" step of the planning workflow).
 - [`to-scope`](skills/to-scope/SKILL.md) — synthesize current context into a lightweight `scope.md` at the repo root; precursor to the full `plan.md` workflow.
-- [`scaffold-monorepo`](skills/scaffold-monorepo/SKILL.md) — bootstrap a polyglot monorepo skeleton (folders, root README/CLAUDE.md/AGENTS.md/.gitignore, git init, optional GitHub remote).
-- [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a C# .NET 10 Web API under `/backend` with a health endpoint, Dockerfile, and xUnit tests.
-- [`scaffold-react-app`](skills/scaffold-react-app/SKILL.md) — drop a TypeScript 6 + React 19 Vite app under `/frontend` with ESLint and a sample page that hits the backend health endpoint.
+- [`scaffold-monorepo`](skills/scaffold-monorepo/SKILL.md) — bootstrap a polyglot monorepo skeleton (folders, root README/CLAUDE.md/AGENTS.md/.gitignore, root `docker-compose.yml` for local dev, git init, optional GitHub remote).
+- [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a layered C# .NET Web API under `/backend` (Domain / Application / Infrastructure / Api projects) with a health endpoint, Dockerfile, and xUnit tests; version fetched live via context7.
+- [`scaffold-react-app`](skills/scaffold-react-app/SKILL.md) — drop a TypeScript + React Vite app under `/frontend` with ESLint and a thin-`App.tsx` health page (page + hook + api client) wired to the backend; versions fetched live via context7.
 - [`scaffold-iac`](skills/scaffold-iac/SKILL.md) — scaffold Terraform under `/infra` for GCP or AWS (provider chosen at invocation time), with remote state, container hosting, static site, secrets, and OIDC for CI.
-- [`scaffold-github-actions`](skills/scaffold-github-actions/SKILL.md) — generate GitHub Actions workflows under `.github/workflows/` for whichever monorepo components exist; OIDC cloud auth, no long-lived secrets.
+- [`scaffold-github-actions`](skills/scaffold-github-actions/SKILL.md) — generate GitHub Actions workflows under `.github/workflows/` for whichever monorepo components exist; builds and pushes backend/ai-service images to GHCR (via `GITHUB_TOKEN`), syncs the frontend static bundle, OIDC for cloud deploy.
 - [`scaffold-genai-service`](skills/scaffold-genai-service/SKILL.md) — scaffold a GenAI/LLM service under `/ai-services/<name>/` with the Anthropic SDK and prompt caching wired up.
 - [`implement-infrastructure`](skills/implement-infrastructure/SKILL.md) — add resources/modules to an existing Terraform setup; detects GCP vs AWS and fetches current provider docs via context7.
 - [`implement-backend`](skills/implement-backend/SKILL.md) — implement backend features as vertical slices in the existing /backend (C# or Python); fetches current framework docs via context7.
 - [`implement-frontend`](skills/implement-frontend/SKILL.md) — implement UI features in the existing /frontend React + TypeScript app; detects libraries already in use, enforces ESLint.
 - [`implement-tests`](skills/implement-tests/SKILL.md) — write tests for existing code in any stack (xUnit / pytest / Vitest / Playwright / etc.); detects the framework and applies its idioms.
+- [`implement-e2e-tests`](skills/implement-e2e-tests/SKILL.md) — write end-to-end UI tests with Playwright (page-object model, accessible-name selectors, trace-on-failure); prefers the Playwright MCP when registered, falls back to standalone `@playwright/test` otherwise.
 
 ## Install
 

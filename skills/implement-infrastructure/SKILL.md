@@ -25,9 +25,11 @@ Do **not** invoke this skill:
 - To change providers (GCP ↔ AWS) — that's a migration, not an
   implementation change.
 
-## Fetch current docs before doing anything
+## Fetch current docs before doing anything — HARD PRECONDITION
 
-Use the **context7 MCP** at the start of every invocation:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+write a single `.tf` line until you have logged context7 queries
+against:
 
 - `/hashicorp/terraform` — for language features (`for_each`,
   `dynamic`, `moved` blocks, etc.).
@@ -36,8 +38,11 @@ Use the **context7 MCP** at the start of every invocation:
   detect which one is pinned and pull its docs for the **specific
   resources** you're about to touch.
 
-Provider arguments change between majors. Do not write a resource
-block from memory — always check the current schema.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Provider arguments change between
+majors, and a deprecated/renamed attribute can `apply` cleanly while
+provisioning the wrong resource. Do not write a resource block from
+memory — always check the current schema.
 
 ## Process
 

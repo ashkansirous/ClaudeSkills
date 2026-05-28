@@ -24,17 +24,23 @@ Do **not** invoke this skill:
   etc.) — those need a different skill once you decide on the approach.
 - To modify an existing AI service — edit the files directly.
 
-## Fetch current docs and versions before running
+## Fetch current docs and versions before running — HARD PRECONDITION
 
-Use the **context7 MCP** at the start of every invocation. Claude API
-features change often:
+Per `home/CLAUDE.md` "Context7 is a hard precondition", do **not**
+scaffold any AI-service code until you have logged context7 queries
+against:
 
 - `/anthropics/anthropic-sdk-python`, `/anthropics/anthropic-sdk-typescript`, or `/anthropics/anthropic-sdk-dotnet` — depending on the language chosen.
 - `/anthropics/anthropic-cookbook` — for prompt caching and tool-use
   patterns currently recommended.
 
-Confirm the **latest stable Claude model ID** via context7 before
-hard-coding one. Do not rely on training-data knowledge of model names.
+State the library IDs you're about to query before calling, so the
+user sees the rule being followed. Claude API features change often
+— prompt-caching parameters, tool-use schemas, and model IDs in
+particular. Confirm the **latest stable Claude model ID** via
+context7 before hard-coding one. Do not rely on training-data
+knowledge of model names; the wrong model ID is a silent
+mis-deployment.
 
 ## Process
 
@@ -59,6 +65,7 @@ hard-coding one. Do not rely on training-data knowledge of model names.
      pyproject.toml         # or .csproj
      README.md
      .env.example           # ANTHROPIC_API_KEY=
+     .dockerignore          # __pycache__/, .venv/, .git/, tests/, *.pyc
      src/
        main.py              # FastAPI app, POST /process endpoint
        llm_client.py        # Anthropic client, prompt caching enabled
@@ -73,6 +80,24 @@ hard-coding one. Do not rely on training-data knowledge of model names.
    (`/python/cpython` for Python, etc.). Do not pin major versions
    inside this skill file.
 
+   **The `Dockerfile` is a real, deployable spec — not a placeholder.**
+   Per `home/CLAUDE.md` "Dockerization & build artifacts", this image
+   is the CI artifact: GitHub Actions builds it and pushes it to GHCR
+   as `ghcr.io/<owner>/<repo>-<service-name>`. Requirements:
+   - **Multi-stage.** Python: a builder stage that installs deps into
+     a venv / wheels, then a slim runtime stage
+     (`python:<ver>-slim`) that copies only what's needed. C#: the
+     same `sdk` → `aspnet` split as the backend skill.
+   - **Non-root user** in the runtime stage.
+   - Dependency layer cached first (copy `pyproject.toml` / lockfile,
+     install, *then* copy `src/`).
+   - A single documented `EXPOSE` port (e.g. 8000 for uvicorn).
+   - Base-image major confirmed via context7, not guessed.
+
+   And **`.dockerignore`** excludes `__pycache__/`, `.venv/`,
+   `.git/`, `tests/`, and `*.pyc` (or the C# equivalents) so the
+   build context stays small.
+
 4. **The `/process` endpoint:**
    - Input: JSON `{ "articles": [{"title": "...", "body": "..."}] }`.
    - Calls Claude with a cached system prompt + the article batch
@@ -84,16 +109,27 @@ hard-coding one. Do not rely on training-data knowledge of model names.
    a real `.env` — `.gitignore` from `scaffold-monorepo` already
    excludes it.
 
-6. **Add `ai-services/<name>/README.md`** — run locally, test, build
-   container, env-var checklist.
+6. **Register the service in the root `docker-compose.yml`.** Add an
+   entry under the service's purpose name (`build:
+   ./ai-services/<name>`, `env_file: ./ai-services/<name>/.env`, map
+   the `EXPOSE`d port to a host port). This lets `docker compose up`
+   boot the AI service alongside the backend locally. If the root
+   `docker-compose.yml` doesn't exist yet (monorepo scaffolded before
+   the compose change landed), create it with this single service.
 
-7. **Sanity check:**
+7. **Add `ai-services/<name>/README.md`** — run locally, test, build
+   container (`docker build -t <name> ai-services/<name>/`), run via
+   compose (`docker compose up <name>`), env-var checklist.
+
+8. **Sanity check:**
    - Lint + test pass.
    - With `ANTHROPIC_API_KEY` set, `curl -X POST /process` returns a
      valid LLM response.
    - The mocked test passes **without** a real API key.
+   - `docker build` succeeds and `docker compose config` still
+     validates with the new service.
 
-8. **Commit** with a message like `feat(ai-services): scaffold <name>
+9. **Commit** with a message like `feat(ai-services): scaffold <name>
    service with Anthropic SDK + prompt caching`.
 
 ## Verification
@@ -104,3 +140,5 @@ hard-coding one. Do not rely on training-data knowledge of model names.
   for a sample article.
 - The Anthropic client matches what the `claude-api` skill currently
   prescribes (prompt caching on, latest model from context7).
+- `docker build -t <name> ai-services/<name>/` builds cleanly and the
+  container runs as a non-root user.
