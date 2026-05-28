@@ -22,6 +22,7 @@ ClaudeSkills/
 
 - [`RefineScope`](skills/RefineScope/SKILL.md) — interview me with at most 4 high-leverage questions about a plan/design, then recommend answers for the rest in one batch (the "clarify intent" step of the planning workflow).
 - [`to-scope`](skills/to-scope/SKILL.md) — synthesize current context into a lightweight `scope.md` at the repo root; precursor to the full `plan.md` workflow.
+- [`to-plan`](skills/to-plan/SKILL.md) — produce the full `plan.md` at the repo root (Context / vertical-slice Changes / Out of scope / Verification) by running the planning workflow: clarify via `RefineScope`, branch, write the plan, reflect into CLAUDE.md/README, commit, open a PR. The heavier sibling of `to-scope`.
 - [`plan-to-issues`](skills/plan-to-issues/SKILL.md) — project a settled `plan.md`/`scope.md` onto GitHub: vertical slices become parent Issues (stories), their steps become native sub-issues (tasks), all added to a Projects v2 board with `Status`/`Slice` set; chat-summary-and-confirm before any write, idempotent on re-run.
 - [`scaffold-monorepo`](skills/scaffold-monorepo/SKILL.md) — bootstrap a polyglot monorepo skeleton (folders, root README/CLAUDE.md/AGENTS.md/.gitignore, root `docker-compose.yml` for local dev, git init, optional GitHub remote).
 - [`scaffold-csharp-api`](skills/scaffold-csharp-api/SKILL.md) — drop a layered C# .NET Web API under `/backend` (Domain / Application / Infrastructure / Api projects) with a health endpoint, Dockerfile, and xUnit tests; version fetched live via context7.
