@@ -164,24 +164,43 @@ current GA release.
    feature has a pattern to follow.
 
 6. **Add a `Dockerfile`** at `backend/Dockerfile` — multi-stage build
-   using the matching `mcr.microsoft.com/dotnet/sdk:<version>` and
-   `aspnet:<version>` images (substitute the major version the project
-   targets). Expose port 8080, run as non-root.
+   using the matching `mcr.microsoft.com/dotnet/sdk:<version>` (build
+   stage: restore + publish) and `aspnet:<version>` (runtime stage)
+   images (substitute the major version the project targets). Expose
+   port 8080, run as a **non-root** user. Per `home/CLAUDE.md`
+   "Dockerization & build artifacts", this image is the CI artifact —
+   GitHub Actions builds it and pushes it to GHCR as
+   `ghcr.io/<owner>/<repo>-backend`. The build stage copies only the
+   `.csproj` files first and runs `dotnet restore` before copying the
+   rest, so dependency layers cache.
 
-7. **Add `backend/README.md`** — sections: run locally
+   Also add **`backend/.dockerignore`** — exclude `bin/`, `obj/`,
+   `**/*.user`, `.git/`, and test output so the build context stays
+   small.
+
+7. **Register the backend service in the root `docker-compose.yml`.**
+   Replace the `backend` placeholder (left by `scaffold-monorepo`)
+   with a real entry: `build: ./backend`, map the container's `8080`
+   to a host port, and pass any config via `environment` / `env_file`.
+   This is what lets `docker compose up` boot the backend locally.
+
+8. **Add `backend/README.md`** — sections: run locally
    (`dotnet run --project Api`), test (`dotnet test`), build container
-   (`docker build`), and a short paragraph naming the architecture
-   (e.g. "Clean Architecture + DDD") and the dependency direction
-   between projects.
+   (`docker build -t backend backend/`), run via compose
+   (`docker compose up backend`), and a short paragraph naming the
+   architecture (e.g. "Clean Architecture + DDD") and the dependency
+   direction between projects.
 
-8. **Sanity check:**
+9. **Sanity check:**
    - `dotnet build` succeeds.
    - `dotnet test` passes.
    - `dotnet run --project Api` serves `/health` returning `200`.
+   - `docker build -t backend backend/` builds cleanly, and
+     `docker compose config` still validates with the new service.
 
-9. **Commit on the current feature branch** with a message like
-   `feat(backend): scaffold .NET Web API with Clean Architecture + DDD`.
-   Do not push or open a PR unless asked.
+10. **Commit on the current feature branch** with a message like
+    `feat(backend): scaffold .NET Web API with Clean Architecture + DDD`.
+    Do not push or open a PR unless asked.
 
 ## Code quality reminders (from home/CLAUDE.md "Backend code quality")
 

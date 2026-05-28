@@ -138,3 +138,14 @@ For unit / component / hook tests, this rule does **not** apply — those go thr
 ## Build pipelines
 
 Default CI/CD is GitHub Actions. Implement build pipelines as GitHub workflows under `.github/workflows/` unless the user specifies a different platform.
+
+### Dockerization & build artifacts
+
+Containerization is a first-class concern, decided at **scaffold time** — not bolted on after the fact. Every component is scaffolded so that the moment CI runs, it produces a deployable artifact with no extra wiring.
+
+- **Backend-type components** — `/backend` and every `/ai-services/<name>/` — ship a multi-stage `Dockerfile` **and** a `.dockerignore` from the moment they're scaffolded. The CI artifact for these is a **container image**, built and pushed to **GitHub Container Registry (GHCR)** at `ghcr.io/<owner>/<repo>-<component>`, tagged `latest`, `sha-<short-sha>`, and `<semver>` on a version tag. Image push authenticates with the workflow's built-in `GITHUB_TOKEN` (`permissions: packages: write`) — no long-lived secret. Cloud **deploy** steps still use OIDC.
+- **Frontend** (`/frontend`) is **not** containerized. Its build artifact is the static `dist/` bundle, deployed to static hosting (S3 + CloudFront / Cloud Storage + CDN) via the frontend workflow's sync step. Do not write a production `Dockerfile` for the frontend.
+- **Local dev** uses a single root `docker-compose.yml` that boots the whole stack. `scaffold-monorepo` emits it; each component scaffold registers its own service. Backend / ai-services use `build: ./<dir>`; the frontend runs as a stock `node:lts-alpine` dev container (bind mount + `npm run dev`), so it needs no Dockerfile. No database/cache service unless a component requires one.
+- **Dockerfile conventions** (for the components that have one): multi-stage build; base-image major confirmed via context7 (don't guess the tag); run as a **non-root** user; a single documented `EXPOSE` port; and a `.dockerignore` that keeps the build context small (`bin/`, `obj/`, `node_modules/`, `__pycache__/`, `.venv/`, `.git/`, test output).
+
+When you scaffold or extend any backend-type component, treat "does this produce a GHCR image artifact and a compose service?" as part of done — not an optional follow-up.

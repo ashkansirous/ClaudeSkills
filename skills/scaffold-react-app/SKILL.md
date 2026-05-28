@@ -102,14 +102,38 @@ time.
 6. **Add `frontend/README.md`** — run locally (`npm run dev`), build
    (`npm run build`), lint (`npm run lint`).
 
-7. **Sanity check:**
+7. **Dockerization: the frontend is a static artifact, not a
+   container.** Per `home/CLAUDE.md` "Dockerization & build artifacts",
+   do **not** write a production `Dockerfile` here. The build artifact
+   is the static `dist/` bundle, deployed to static hosting (S3 +
+   CloudFront / Cloud Storage + CDN) by the frontend CI workflow. For
+   **local dev parity**, register a dev-only service in the root
+   `docker-compose.yml` using a stock image — no Dockerfile:
+
+   ```yaml
+   frontend:
+     image: node:lts-alpine     # major confirmed via context7
+     working_dir: /app
+     volumes:
+       - ./frontend:/app
+     command: sh -c "npm install && npm run dev -- --host"
+     ports:
+       - "5173:5173"
+   ```
+
+   Replace the `frontend` placeholder left by `scaffold-monorepo`. If
+   the root `docker-compose.yml` doesn't exist yet, create it with
+   just this service.
+
+8. **Sanity check:**
    - `npm run lint` clean.
    - `npm run build` succeeds.
    - `npm run dev` loads the page at `http://localhost:5173` and
      fetches `/health` from the backend (true end-to-end smoke test
      when both are running).
+   - `docker compose config` validates with the new `frontend` service.
 
-8. **Commit on the current feature branch** with a message like
+9. **Commit on the current feature branch** with a message like
    `feat(frontend): scaffold React + TS app with health check demo`.
    Do not push or open a PR unless asked.
 
@@ -119,3 +143,6 @@ time.
 - `npm run build` produces `dist/` without errors.
 - With the backend running, the dev server shows the health-check
   result rendered on the page.
+- No `frontend/Dockerfile` exists; the `frontend` service in the root
+  compose uses a stock `node` image and boots via `docker compose up
+  frontend`.
