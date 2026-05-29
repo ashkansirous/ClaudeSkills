@@ -95,6 +95,42 @@ Do **not** use it:
    created issue number next to each slice/task (traceability + safer
    re-runs). Then print a summary with links to the issues and the board.
 
+## Keeping the board honest
+
+The board only stays useful if `Status` moves with the work. This skill
+creates everything at `Status=Todo`. From there:
+
+1. **Start of work on a task:** before the first commit that touches it,
+   set `Status=In Progress`. The `sync-board` skill wraps this so you
+   don't hand-look-up field IDs — invoke it as `/sync-board start #N`.
+
+2. **Parent story:** moves to `In Progress` when its first child task
+   does, and stays there until all its children are Done or explicitly
+   deferred.
+
+3. **Done on PR merge:** the Projects v2 closed-issue workflow moves an
+   item to `Status=Done` when its issue closes. That only fires if the
+   PR body actually closes the issue — which means **proper one-per-line
+   closing references** (see `home/CLAUDE.md` "Pull request bodies"). If
+   only the first listed issue auto-closes, the others stay stuck in
+   their pre-merge Status.
+
+4. **Mid-stream verification.** Before reporting a PR as done, run:
+
+   ```bash
+   gh pr view <num> --json closingIssuesReferences \
+     --jq '.closingIssuesReferences[].number'
+   gh project item-list <num> --owner <login> --limit 100 --format json \
+     --jq '.items[] | [(.content.number|tostring), .status] | @tsv' | sort -n
+   ```
+
+   The first must show every issue you intended to close. The second
+   must reflect actual progress — not the initial `Todo` everything was
+   created with.
+
+Project boards are not write-once. Leaving everything in `Todo` while
+shipping PRs is a bug, not a stylistic choice.
+
 ## Verification
 
 - `gh issue list` shows the stories; `gh issue view <n>` shows the linked
