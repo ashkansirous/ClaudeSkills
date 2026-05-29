@@ -44,6 +44,48 @@ When the user asks you to commit and push changes, default to a feature branch a
 
 Push directly to `main` only when the user explicitly asks for it (e.g. "commit straight to main", "push to main directly", "skip the PR"). A generic "yes" in response to "should I commit and push?" is **not** authorization to skip the PR flow — assume PR.
 
+## Pull request bodies
+
+Every PR body you write follows this contract. These are not stylistic preferences — they prevent specific bugs that have actually happened.
+
+### Closing references — one keyword per line
+
+When a PR closes multiple issues, write each closing reference on its own line:
+
+```
+Closes #11
+Closes #12
+Closes #13
+```
+
+**Not** `Closes #11, #12, #13.` and **not** `Closes #11, closes #12, closes #13.` — GitHub's parser only auto-links the **first** issue in inline comma forms, so the others stay open after merge (and remain stuck in their pre-merge `Status` on the project board). The one-per-line form is the only reliable way to link multiple closing references.
+
+Accepted keywords: `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolve`, `resolves`, `resolved`. Case doesn't matter; placement does.
+
+### Verify the references parsed — every time
+
+After every `gh pr create` or `gh pr edit` that adds closing references, run this check before reporting the PR as done:
+
+```bash
+gh pr view <num> --json closingIssuesReferences --jq '.closingIssuesReferences[].number'
+```
+
+The printed list must match exactly the issues you intended to close. If it doesn't, the body syntax is wrong — fix it and re-verify. Treat this the same way you treat reading test output: not optional, not deferrable to the user.
+
+### Body shape
+
+Default to two sections:
+- **Summary** — 1–3 bullets on *why* and the user-visible change. Not a recap of the diff.
+- **Test plan** — a checkboxed list of what was actually verified, with the commands. Be honest about what couldn't be run (e.g. "live browser end-to-end not yet run; Playwright MCP not registered").
+
+Then the closing references on their own lines at the bottom.
+
+### Keeping the project board in sync
+
+When a PR opens, move every closed-by-this-PR issue to `Status=In Progress` on the Projects v2 board if it isn't already (issues stay In Progress until the PR merges; the closed-issue workflow then auto-moves them to `Done`). When you start work on a tracked issue before opening a PR, move it to `In Progress` before the first commit. Use the `sync-board` skill so you don't hand-look-up field/option IDs every time.
+
+The board is the user's view of reality. Leaving everything in `Todo` while shipping PRs is a bug, not a style preference.
+
 ## Project scaffolding
 
 For every project you touch:
