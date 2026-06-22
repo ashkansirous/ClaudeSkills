@@ -36,6 +36,7 @@ ClaudeSkills/
 - [`implement-frontend`](skills/implement-frontend/SKILL.md) — implement UI features in the existing /frontend React + TypeScript app; detects libraries already in use, enforces ESLint.
 - [`implement-tests`](skills/implement-tests/SKILL.md) — write tests for existing code in any stack (xUnit / pytest / Vitest / Playwright / etc.); detects the framework and applies its idioms.
 - [`implement-e2e-tests`](skills/implement-e2e-tests/SKILL.md) — write end-to-end UI tests with Playwright (page-object model, accessible-name selectors, trace-on-failure); prefers the Playwright MCP when registered, falls back to standalone `@playwright/test` otherwise.
+- [`code-review-in-detail`](skills/code-review-in-detail/SKILL.md) — deep, uncapped multi-agent review of the current diff (or a named PR/branch/range) that writes two files: a readable `summary-code-review.md` and an exhaustive `detailed-code-review.md` (every issue with `file:line`, a suggested fix, and the reason). Reports *all* real issues — correctness, reuse/simplification/efficiency/altitude, plus test gaps, hygiene/scope-creep in non-code files, and a remediation plan — and, when a `scope.md`/`plan.md`/PR description exists, checks whether the diff actually implements the intended task.
 
 ## Install
 
