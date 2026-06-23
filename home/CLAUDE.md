@@ -30,6 +30,30 @@ If it prints anything other than `main` (most common on a fresh repo where the f
 
 A fresh repo's `main` should be undeletable: add a branch ruleset/protection on the default branch with `deletion` + `non_fast_forward` rules (`gh api repos/{owner}/{repo}/rulesets ...`), either when setting up the repo or whenever the user asks.
 
+## Branch hygiene: prune merged branches when you start a new one
+
+Short-lived branches are disposable — once their PR merges into `main`, they are dead weight. Leaving them around hides which branch is the real trunk and makes drift (the failure above) hard to spot. So **every time you create a new branch** — right after the `main` guard, before `git checkout -b` — sweep up branches whose work is already in `main`:
+
+```bash
+git checkout main && git fetch --prune origin          # prune drops stale remote-tracking refs
+git branch --merged main | grep -vE '^\*|(^|\s)main$' | xargs -r git branch -d   # safe: -d refuses unmerged
+```
+
+That handles local branches safely (`git branch -d` refuses to delete anything not fully merged). For the **remote** branches whose PRs have merged but that still exist on the origin:
+
+```bash
+gh pr list --state merged --json headRefName --jq '.[].headRefName'   # candidates
+git push origin --delete <branch>                                     # delete the merged ones
+```
+
+Rules for the sweep:
+
+- **List what you're about to delete and confirm with the user before deleting any *remote* branch** — remote deletion is destructive and outward-facing. Local `-d` deletions are safe to do without asking (they can't drop unmerged work).
+- **Never delete `main`, the current branch, or a branch with an open/unmerged PR.** Skip anything `git branch -d` refuses, and skip head branches of still-open PRs.
+- Prefer enabling GitHub's **auto-delete head branches on merge** (`gh repo edit --delete-branch-on-merge`) on repos you set up, so merged remote branches clean themselves up.
+
+This keeps `git branch -a` showing only `main` plus the genuinely active branches.
+
 ## Planning workflow
 
 Trigger this workflow whenever the user asks for a plan, whether or not they use a "magic" phrase. Phrases that should fire it include — but are not limited to — `let's plan ...`, `let's make a plan`, `make a plan`, `make me a plan`, `start a plan for ...`, `plan this ...`, `lets plan ...`, or running the `/RefineScope` skill with planning-shaped arguments. If you're unsure whether the user is asking for a plan or a quick chat, default to triggering the workflow — the cost of one extra `plan.md` is small; the cost of missing it is losing the audit trail of what was decided.
@@ -37,7 +61,7 @@ Trigger this workflow whenever the user asks for a plan, whether or not they use
 Once triggered, follow these six steps:
 
 1. **Clarify intent.** Use the `RefineScope` skill to interview the user about goals and main purpose (at most 4 questions, then recommendations for the rest) until you reach shared understanding. Skip only if intent is already crystal clear from the user's message.
-2. **Branch.** If this is a git repo, first run the **`main` guard** (see *The trunk is always `main`*) — if the repo's default branch isn't `main`, fix that before branching. Then create a new branch **from `main`** named `plan/<short-slug>` derived from the topic. If it's not a git repo yet, skip the branch step (don't run `git init` without asking) but still proceed to step 3.
+2. **Branch.** If this is a git repo, first run the **`main` guard** (see *The trunk is always `main`*) — if the repo's default branch isn't `main`, fix that before branching — and the **merged-branch sweep** (see *Branch hygiene*). Then create a new branch **from `main`** named `plan/<short-slug>` derived from the topic. If it's not a git repo yet, skip the branch step (don't run `git init` without asking) but still proceed to step 3.
 3. **Write the plan to `plan.md` at the repo root.** This is non-negotiable. The plan file the harness may give you (e.g. `~/.claude/plans/<slug>.md`) is for the agent's working memory; the *project's* plan must live at `<repo>/plan.md` so the user can read, edit, and commit it. If both exist, keep them in sync — but `plan.md` at the repo root is the source of truth. Overwrite if it exists — `plan.md` is branch-scoped. After implementation, the plan stays in the repo as a record of what was built (and what was deliberately out of scope) — do not delete it.
 4. **Reflect the plan.** If the plan introduces new conventions, commands, or behaviors, update `CLAUDE.md`. If it changes user-facing behavior or install steps, update `README.md`. If neither applies, leave them alone.
 5. **Commit and push.** Only if this is a git repo. One commit per logical step (the plan itself, then each reflection). Push the branch with `-u` to set upstream.
@@ -65,7 +89,7 @@ Exceptions: pure infrastructure with no user-visible surface yet (e.g. a shared 
 
 When the user asks you to commit and push changes, default to a feature branch and PR — **never push directly to `main`**. This applies to every request, not just the planning workflow above. The planning workflow is one specific instance of this rule.
 
-0. Run the **`main` guard** first (see *The trunk is always `main`*): confirm the repo's default branch is `main` and fix it if not, before branching.
+0. Run the **`main` guard** first (see *The trunk is always `main`*): confirm the repo's default branch is `main` and fix it if not; then do the **merged-branch sweep** (see *Branch hygiene*) — before branching.
 1. Create a branch from `main` named `feat/<slug>`, `fix/<slug>`, or `chore/<slug>` based on the change.
 2. Commit on the branch.
 3. Push the branch with `-u`.
