@@ -2,6 +2,34 @@
 
 These apply to every project on machines where ClaudeSkills is installed. Synced from `~/.claude/skills-repo/home/CLAUDE.md` via the repo's install script.
 
+## The trunk is always `main` (non-negotiable)
+
+Every git repo has exactly one long-lived trunk, and it is **`main`**. All work merges into `main`; nothing else is ever the trunk or the GitHub default branch. A `plan/*`, `feat/*`, `fix/*`, or `chore/*` branch is always short-lived and always merges back into `main` via a PR. There is no exception — "the planning branch became the trunk" is the exact failure this rule exists to prevent.
+
+**The `main` guard — run it before creating any branch and before opening any PR:**
+
+```bash
+git fetch origin
+gh repo view --json defaultBranchRef --jq .defaultBranchRef.name   # must print exactly: main
+```
+
+If it prints anything other than `main` (most common on a fresh repo where the first branch pushed — e.g. a `plan/*` branch — silently became the default), **stop and fix the trunk before doing anything else:**
+
+1. Make sure `main` has the latest work. If another branch (e.g. `plan/<slug>`) is acting as the trunk, bring it into `main`: `git checkout main && git merge --ff-only <trunk-branch>` (use a normal merge if it won't fast-forward). Inspect with `git log --oneline main..<trunk-branch>` first.
+2. Push it: `git push -u origin main`.
+3. Make it the default: `gh repo edit --default-branch main`.
+4. Retarget every open PR onto `main`: `gh pr edit <num> --base main`.
+5. Delete the impostor trunk branch(es) once their content is in `main` — **confirm with the user first** (it's destructive): `git push origin --delete <branch>` then `git branch -d <branch>`, then `git remote prune origin`.
+
+**Hard invariants — never violate these:**
+
+- Always branch **from `main`**; always open PRs with **`--base main`**.
+- Never run `gh repo edit --default-branch` with anything other than `main`.
+- When first pushing a brand-new repo, push **`main` first** (`git init -b main` → first push/`gh repo create --push` on `main`) so GitHub sets `main` as the default. Never let the first pushed branch be a `plan/*`/`feat/*` branch.
+- Never merge a feature/plan branch into another feature/plan branch as if it were the trunk. PRs flow one way: short-lived branch → `main`.
+
+A fresh repo's `main` should be undeletable: add a branch ruleset/protection on the default branch with `deletion` + `non_fast_forward` rules (`gh api repos/{owner}/{repo}/rulesets ...`), either when setting up the repo or whenever the user asks.
+
 ## Planning workflow
 
 Trigger this workflow whenever the user asks for a plan, whether or not they use a "magic" phrase. Phrases that should fire it include — but are not limited to — `let's plan ...`, `let's make a plan`, `make a plan`, `make me a plan`, `start a plan for ...`, `plan this ...`, `lets plan ...`, or running the `/RefineScope` skill with planning-shaped arguments. If you're unsure whether the user is asking for a plan or a quick chat, default to triggering the workflow — the cost of one extra `plan.md` is small; the cost of missing it is losing the audit trail of what was decided.
@@ -9,7 +37,7 @@ Trigger this workflow whenever the user asks for a plan, whether or not they use
 Once triggered, follow these six steps:
 
 1. **Clarify intent.** Use the `RefineScope` skill to interview the user about goals and main purpose (at most 4 questions, then recommendations for the rest) until you reach shared understanding. Skip only if intent is already crystal clear from the user's message.
-2. **Branch.** If this is a git repo, create a new branch from `main` named `plan/<short-slug>` derived from the topic. If it's not a git repo yet, skip the branch step (don't run `git init` without asking) but still proceed to step 3.
+2. **Branch.** If this is a git repo, first run the **`main` guard** (see *The trunk is always `main`*) — if the repo's default branch isn't `main`, fix that before branching. Then create a new branch **from `main`** named `plan/<short-slug>` derived from the topic. If it's not a git repo yet, skip the branch step (don't run `git init` without asking) but still proceed to step 3.
 3. **Write the plan to `plan.md` at the repo root.** This is non-negotiable. The plan file the harness may give you (e.g. `~/.claude/plans/<slug>.md`) is for the agent's working memory; the *project's* plan must live at `<repo>/plan.md` so the user can read, edit, and commit it. If both exist, keep them in sync — but `plan.md` at the repo root is the source of truth. Overwrite if it exists — `plan.md` is branch-scoped. After implementation, the plan stays in the repo as a record of what was built (and what was deliberately out of scope) — do not delete it.
 4. **Reflect the plan.** If the plan introduces new conventions, commands, or behaviors, update `CLAUDE.md`. If it changes user-facing behavior or install steps, update `README.md`. If neither applies, leave them alone.
 5. **Commit and push.** Only if this is a git repo. One commit per logical step (the plan itself, then each reflection). Push the branch with `-u` to set upstream.
@@ -37,6 +65,7 @@ Exceptions: pure infrastructure with no user-visible surface yet (e.g. a shared 
 
 When the user asks you to commit and push changes, default to a feature branch and PR — **never push directly to `main`**. This applies to every request, not just the planning workflow above. The planning workflow is one specific instance of this rule.
 
+0. Run the **`main` guard** first (see *The trunk is always `main`*): confirm the repo's default branch is `main` and fix it if not, before branching.
 1. Create a branch from `main` named `feat/<slug>`, `fix/<slug>`, or `chore/<slug>` based on the change.
 2. Commit on the branch.
 3. Push the branch with `-u`.
