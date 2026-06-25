@@ -97,6 +97,21 @@ When the user asks you to commit and push changes, default to a feature branch a
 
 Push directly to `main` only when the user explicitly asks for it (e.g. "commit straight to main", "push to main directly", "skip the PR"). A generic "yes" in response to "should I commit and push?" is **not** authorization to skip the PR flow — assume PR.
 
+### Decide the SemVer bump when the repo auto-versions from commits
+
+Some repos compute their release version **automatically from git/commit history** — e.g. **GitVersion** (reads `+semver: major|minor|patch|none` tokens in commit messages), **Conventional Commits** / semantic-release (`feat:` → minor, `fix:` → patch, `feat!:`/`BREAKING CHANGE:` → major), or a bespoke CI job that derives the next SemVer. When such a setup exists, **the commit message is the version input** — picking the bump is part of writing the commit, not an afterthought, and getting it wrong silently ships the wrong version.
+
+So before committing, **check whether automated versioning is wired up**: look for `GitVersion.yml`, a `version`/`release` CI job, `semantic-release`/`commitlint`/`changesets` config, or a `CLAUDE.md`/`CONTRIBUTING.md` note describing a commit convention. If you find one:
+
+1. **Learn the exact marker the tool consumes — don't assume.** GitVersion wants a `+semver: minor` token in the message body; Conventional Commits wants a `feat:`/`fix:`/`feat!:` *prefix*; changesets wants a changeset file. Match the mechanism actually in use, in the format it expects.
+2. **Classify the change and set the bump accordingly:**
+   - **major** — a breaking change to a public/consumed contract: removed or renamed API/exports, changed CLI flags, config keys, or on-disk/schema/wire formats. Marker: `+semver: major` / `feat!:` / a `BREAKING CHANGE:` footer.
+   - **minor** — a backward-compatible new feature or capability. Marker: `+semver: minor` / `feat:`.
+   - **patch** — a bug fix, refactor, perf tweak, docs, chore, test, or CI change with no new surface. This is the **default**: most tools (GitVersion included) bump patch when no marker is present, so a patch usually needs no marker at all.
+3. **Default to patch when unsure, but never *under*-mark.** A feature committed with no marker ships as a patch and silently under-versions the release — that's the failure this rule prevents. When a change is genuinely a feature or a breaking change, you **must** add the higher marker. If you can't tell minor from major on a public-contract change, prefer the safer (higher) bump or ask.
+
+Put the marker on the commit that carries the change. In **squash-merge** repos the squash message becomes the commit, so mirror the marker in the **PR title/description** too. If the repo has **no** auto-versioning, ignore all of this — don't invent version markers nothing consumes.
+
 ## Pull request bodies
 
 Every PR body you write follows this contract. These are not stylistic preferences — they prevent specific bugs that have actually happened.
