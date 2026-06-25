@@ -69,7 +69,7 @@ Once triggered, follow these six steps:
 
 Confirm with the user before pushing or opening the PR.
 
-**Keeping `plan.md` honest during implementation.** As you work, tick off slices in `plan.md` (e.g. add a `[x]` next to a completed item) and add any scope changes the user agrees to. The plan is the record of what was built — if it drifts from reality, future-you and the user can't tell what was finished, what was skipped, and why.
+**Keeping `plan.md` honest during implementation.** As you work, tick off slices in `plan.md` (e.g. add a `[x]` next to a completed item) and add any scope changes the user agrees to. The plan is the record of what was built — if it drifts from reality, future-you and the user can't tell what was finished, what was skipped, and why. When you open the **implementation** PR for a slice, it must close that slice's tracked issues — its story **and** its done sub-tasks (see *Pull request bodies → Find which issues the PR closes*). Ticking the slice `[x]` in `plan.md` but leaving its GitHub issues open is the exact drift this rule prevents.
 
 ## Task breakdown: vertical slices over horizontal layers
 
@@ -101,6 +101,17 @@ Push directly to `main` only when the user explicitly asks for it (e.g. "commit 
 
 Every PR body you write follows this contract. These are not stylistic preferences — they prevent specific bugs that have actually happened.
 
+### Find which issues the PR closes — do this BEFORE you open it
+
+Before `gh pr create` for any work that is tracked as issues, identify **every** issue the PR completes and add a closing reference for each. This step is the one that actually gets skipped — the rest of this section assumes you already know which issues to close, and that assumption is where work rots. Sources, in order:
+
+- **`plan.md`** links each slice to its story issue (e.g. `Slice 4 — … ([#7](…))`). The PR that implements that slice closes that **story and its task/sub-issues** — find them with `gh issue list` (filter by the slice's label) or by reading the story's sub-issue list.
+- the Projects v2 board / `gh issue list --state open` for the repo.
+
+Closing the parent **story does not auto-close its sub-tasks** — list every done task issue explicitly. If a slice only partially completes a story (some tasks deliberately deferred), close just the finished task issues, leave the story + deferred tasks open, and say so in the PR body.
+
+If you implemented tracked work and your PR body has **no** `Closes #…` line, treat that as a bug until proven otherwise — the issues survive the merge and rot as "done but still open." This has actually happened: a slice's story plus three task issues stayed open after merge because the PR omitted the references, and the user had to point it out.
+
 ### Closing references — one keyword per line
 
 When a PR closes multiple issues, write each closing reference on its own line:
@@ -117,13 +128,18 @@ Accepted keywords: `close`, `closes`, `closed`, `fix`, `fixes`, `fixed`, `resolv
 
 ### Verify the references parsed — every time
 
-After every `gh pr create` or `gh pr edit` that adds closing references, run this check before reporting the PR as done:
+After **every** `gh pr create`/`gh pr edit` for tracked work (not just when you remember to add refs), run this check before reporting the PR as done:
 
 ```bash
 gh pr view <num> --json closingIssuesReferences --jq '.closingIssuesReferences[].number'
 ```
 
-The printed list must match exactly the issues you intended to close. If it doesn't, the body syntax is wrong — fix it and re-verify. Treat this the same way you treat reading test output: not optional, not deferrable to the user.
+The printed list must match exactly the issues you intended to close. Two failure modes, both bugs:
+
+- **Empty list when the work was tracked** — you forgot the `Closes #…` lines entirely (the most common miss). Go back to *Find which issues the PR closes*, add them, re-verify.
+- **List doesn't match** — the body syntax is wrong (e.g. inline comma form); fix it and re-verify.
+
+Treat this the same way you treat reading test output: not optional, not deferrable to the user. (`closingIssuesReferences` is eventually-consistent and can lag a few seconds after an edit — if it looks stale, re-query before concluding it's wrong.)
 
 ### Body shape
 
