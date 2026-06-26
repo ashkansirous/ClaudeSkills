@@ -67,7 +67,7 @@ Once triggered, follow these six steps:
 5. **Commit and push.** Only if this is a git repo. One commit per logical step (the plan itself, then each reflection). Push the branch with `-u` to set upstream.
 6. **Open a PR** against `main`. Only if this is a git repo with a remote. Title from the plan slug. Body = a 1-3 line summary plus a checklist of in-scope items from the plan.
 
-Confirm with the user before pushing or opening the PR.
+Push the branch and open the PR automatically — do **not** stop to ask "shall I push / open the PR?" first. Branching, pushing a short-lived branch, and opening a PR are all reversible and reviewable on GitHub, so asking each time is pure friction. Just do it and report the PR URL. (The only git actions that still need an explicit confirmation are the genuinely destructive, outward-facing ones called out elsewhere — deleting a *remote* branch and pushing directly to `main`. Opening a PR is neither.)
 
 **Keeping `plan.md` honest during implementation.** As you work, tick off slices in `plan.md` (e.g. add a `[x]` next to a completed item) and add any scope changes the user agrees to. The plan is the record of what was built — if it drifts from reality, future-you and the user can't tell what was finished, what was skipped, and why. When you open the **implementation** PR for a slice, it must close that slice's tracked issues — its story **and** its done sub-tasks (see *Pull request bodies → Find which issues the PR closes*). Ticking the slice `[x]` in `plan.md` but leaving its GitHub issues open is the exact drift this rule prevents.
 
@@ -94,6 +94,8 @@ When the user asks you to commit and push changes, default to a feature branch a
 2. Commit on the branch.
 3. Push the branch with `-u`.
 4. Open a PR against `main` with `gh pr create` so the user can review on GitHub.
+
+Run steps 1–4 automatically — **do not pause to ask for confirmation before pushing or opening the PR.** The branch + push + `gh pr create` flow is reversible and the PR is itself the review surface, so asking first just adds a round-trip. Report the PR URL when done.
 
 Push directly to `main` only when the user explicitly asks for it (e.g. "commit straight to main", "push to main directly", "skip the PR"). A generic "yes" in response to "should I commit and push?" is **not** authorization to skip the PR flow — assume PR.
 
